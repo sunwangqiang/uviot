@@ -8,7 +8,7 @@ export TOP_DIR RELEASE_DIR BUILDIN_OBJ
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
-V = 0
+V = 1
 ifeq ($(V),1)
   Q =
 else
@@ -60,6 +60,7 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
 ##define subdir subdir_obj and subdir_clean
 subdir_y += core
+subdir_y += lib
 
 subdir_obj = $(addsuffix /buildin.o,$(subdir_y))
 subdir_clean := $(addprefix _clean_, $(subdir_y))
@@ -74,11 +75,18 @@ TARGET_OBJ = uviot
 .PHONY: all $(subdir_y)
 all:prepare $(TARGET_OBJ)
 
+ifeq ($(strip $(src_y)),)
+prepare:
+
+prepare_clean:
+	
+else
 prepare:
 	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
-	
+
 prepare_clean:
 	$(Q)$(RM) -fr .depend
+endif
 	
 -include .depend
 

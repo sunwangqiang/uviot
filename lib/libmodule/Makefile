@@ -1,31 +1,24 @@
 #compile process
 
 ##define subdir subdir_obj and subdir_clean
-subdir_y += libmodule
- 
+subdir_y += 
+
 subdir_obj = $(addsuffix /buildin.o,$(subdir_y))
 subdir_clean := $(addprefix _clean_, $(subdir_y))
 
 ##define current_dir obj and src file
-obj_y += 
+obj_y += libmodule.o
 src_y = ${obj_y:%.o=%.c}
 
 TARGET_OBJ = $(BUILDIN_OBJ)
 .PHONY: all $(subdir_y)
 all:prepare $(TARGET_OBJ)
 
-ifeq ($(strip $(src_y)),)
-prepare:
-
-prepare_clean:
-	
-else
 prepare:
 	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
-
+	
 prepare_clean:
 	$(Q)$(RM) -fr .depend
-endif
 	
 -include .depend
 

@@ -4,6 +4,7 @@
  */
 #include <uviot.h>
 
+#if 1
 int vos_init(void)
 {
     int result;
@@ -13,7 +14,7 @@ int vos_init(void)
     for (; call<&__stop_core_section; call++) {
         result = (*call)();
         if(result){
-            vos_log(VOS_LOG_ERR, "failed %p\n", *call);
+            uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
             return result;
         }
     }
@@ -22,7 +23,7 @@ int vos_init(void)
     for (; call<&__stop_module_section; call++) {
         result = (*call)();
         if(result){
-            vos_log(VOS_LOG_ERR, "failed %p\n", *call);
+            uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
             return result;            
         }        
     }
@@ -31,14 +32,15 @@ int vos_init(void)
     for (; call<&__stop_late_section; call++) {
         result = (*call)();
         if(result){
-            vos_log(VOS_LOG_ERR, "failed %p\n", *call);
+            uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
             return result;            
         }        
     }
-    vos_log(VOS_LOG_INFO, "ok");
+    uviot_log(UVIOT_LOG_INFO, "ok");
     
     return result;
 }
+#endif
 
 static int core_init_dummy(void)
 {

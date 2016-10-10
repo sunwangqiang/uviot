@@ -7,17 +7,25 @@ subdir_clean := $(addprefix _clean_, $(subdir_y))
 
 ##define current_dir obj and src file
 obj_y += hello.o
+obj_y += uviot_log.o
 src_y = ${obj_y:%.o=%.c}
 
 TARGET_OBJ = $(BUILDIN_OBJ)
 .PHONY: all $(subdir_y)
 all:prepare $(TARGET_OBJ)
 
+ifeq ($(strip $(src_y)),)
+prepare:
+
+prepare_clean:
+	
+else
 prepare:
 	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
-	
+
 prepare_clean:
 	$(Q)$(RM) -fr .depend
+endif
 	
 -include .depend
 

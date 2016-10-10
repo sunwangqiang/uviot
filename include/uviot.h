@@ -11,10 +11,10 @@
 #include <ctype.h>
 #include <math.h>
 
+#include <uviot_log.h>
 #include <uviot_list.h>
 #include <uviot_type.h>
 #include <uviot_modules.h>
-
 
 #endif
 
