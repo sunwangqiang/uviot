@@ -55,57 +55,14 @@ LINK_FLAGS +=
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
-
-#compile process
-
-##define subdir subdir_obj and subdir_clean
+##define subdir_y subdir_m  obj_y and TARGET
 subdir_y += core
 subdir_y += lib
 
-subdir_obj = $(addsuffix /buildin.o,$(subdir_y))
-subdir_clean := $(addprefix _clean_, $(subdir_y))
+subdir_m +=
 
-##define current_dir obj and src file
 obj_y += hello.o
-src_y = ${obj_y:%.o=%.c}
 
+TARGET = uviot
 
-TARGET_OBJ = uviot
-
-.PHONY: all $(subdir_y)
-all:prepare $(TARGET_OBJ)
-
-ifeq ($(strip $(src_y)),)
-prepare:
-
-prepare_clean:
-	
-else
-prepare:
-	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
-
-prepare_clean:
-	$(Q)$(RM) -fr .depend
-endif
-	
--include .depend
-
-# $(MAKE) $(JN) -C $@ || exit 1 ;
-$(subdir_obj):$(subdir_y)
-	
-$(subdir_y):
-	$(Q)$(MAKE)  -C $@ || exit 1 ;
-	
-$(TARGET_OBJ):$(obj_y) $(subdir_obj)
-	$(Q)$(CC) $(LINK_FLAGS) $^  -o $@
-	
-.c.o:
-	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
-
-clean: prepare_clean $(subdir_clean)
-	$(Q)$(RM) -fr $(TARGET_OBJ) $(obj_y)
-
-$(subdir_clean):
-	$(Q)$(MAKE) -C $(patsubst _clean_%,%,$@) clean || exit 1 ;
-
-	
+include $(TOP_DIR)/MakeRule
