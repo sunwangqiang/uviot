@@ -1,50 +1,10 @@
-#compile process
-
-##define subdir subdir_obj and subdir_clean
+##define your subdir_y subdir_m and obj_y
+subdir_y +=
 subdir_y += libmodule
- 
-subdir_obj = $(addsuffix /buildin.o,$(subdir_y))
-subdir_clean := $(addprefix _clean_, $(subdir_y))
 
-##define current_dir obj and src file
-obj_y += 
-src_y = ${obj_y:%.o=%.c}
+subdir_m +=
+subdir_m += libuv
 
-TARGET_OBJ = $(BUILDIN_OBJ)
-.PHONY: all $(subdir_y)
-all:prepare $(TARGET_OBJ)
+obj_y +=
 
-ifeq ($(strip $(src_y)),)
-prepare:
-
-prepare_clean:
-	
-else
-prepare:
-	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
-
-prepare_clean:
-	$(Q)$(RM) -fr .depend
-endif
-	
--include .depend
-
-# $(MAKE) $(JN) -C $@ || exit 1 ;
-$(subdir_obj):$(subdir_y)
-	
-$(subdir_y):
-	$(Q)$(MAKE)  -C $@ || exit 1 ;
-	
-$(TARGET_OBJ):$(obj_y) $(subdir_obj)
-	$(Q)$(LD) -r $(LINK_FLAGS) -o $@ $^
-	
-.c.o:
-	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
-
-clean: prepare_clean $(subdir_clean)
-	$(Q)$(RM) -fr $(TARGET_OBJ) $(obj_y)
-
-$(subdir_clean):
-	$(Q)$(MAKE) -C $(patsubst _clean_%,%,$@) clean || exit 1 ;
-
-	
+include $(TOP_DIR)/MakeRule
