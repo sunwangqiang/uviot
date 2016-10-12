@@ -8,7 +8,7 @@ export TOP_DIR RELEASE_DIR BUILDIN_OBJ
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
-V = 1
+V = 0
 ifeq ($(V),1)
   Q =
 else

@@ -41,10 +41,10 @@ $(TARGET):$(BUILDIN_OBJ)
 		
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
-	@echo "compile" $<
+	@echo "Compile    " $<
 
 clean: prepare_clean $(subdir_y_clean) $(subdir_m_clean)
-	$(Q)$(RM) -fr $(BUILDIN_OBJ) $(obj_y) $(TARGET)
+	$(RM) -fr $(BUILDIN_OBJ) $(obj_y) $(TARGET)
 
 $(subdir_y_clean):
 	$(Q)$(MAKE) -C $(patsubst _clean_%,%,$@) clean || exit 1 ;
