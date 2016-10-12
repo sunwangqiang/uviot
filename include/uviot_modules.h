@@ -12,15 +12,15 @@ typedef void (*exitcall_t)(void);
 
 #define __define_module_initcall(fn) \
  static initcall_t __initcall_##fn  \
- __attribute__((used, __section__("module_section, __DATA"))) = fn
+ __attribute__((used, __section__("__TEXT, module_section"))) = fn
 
 #define __define_core_initcall(fn) \
  static initcall_t __initcall_##fn  \
- __attribute__((used, __section__("core_section, __DATA"))) = fn
+ __attribute__((used, __section__("__TEXT, core_section"))) = fn
 
 #define __define_late_initcall(fn) \
  static initcall_t __initcall_##fn  \
- __attribute__((used, __section__("late_section, __DATA"))) = fn
+ __attribute__((used, __section__("__TEXT, late_section"))) = fn
 
 #else
 

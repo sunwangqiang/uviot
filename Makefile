@@ -33,7 +33,7 @@ export AS LD CC CPP AR NM STRIP OBJCOPY OBJDUMP
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer 
 HOSTCXXFLAGS = -O2
 ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
 HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
@@ -44,14 +44,15 @@ export HOSTCC HOSTCXX HOSTCXXFLAGS
 BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -std=gnu89 
+		   -Wno-format-security 
 
 INCLUDE_DIR    := \
 		-I$(TOP_DIR)/include
 
 BUILD_CFLAGS += $(INCLUDE_DIR)
-LINK_FLAGS +=
+
+# -w disable MAC OS X PIE warning
+LINK_FLAGS +=  -w
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 

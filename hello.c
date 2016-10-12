@@ -1,9 +1,12 @@
 
 #include <uviot.h>
 
+extern int uviot_init(void);
+
 int main(void)
 {
-	printf("hello world\n");
+    uviot_init();
+    printf("hello world\n");
 	return 0;
 }
 
