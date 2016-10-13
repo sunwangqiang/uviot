@@ -1,0 +1,8 @@
+*.lo
+*.o
+*.la
+.depend
+*.a
+*.lai
+*.dylib
+uviot
