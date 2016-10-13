@@ -7,7 +7,7 @@ src_y = ${obj_y:%.o=%.c}
 
 
 .PHONY: all $(subdir_y) $(subdir_m)
-all:prepare $(BUILDIN_OBJ) $(subdir_m) $(TARGET)
+all:prepare $(subdir_m) $(BUILDIN_OBJ) $(TARGET)
 
 ifeq ($(strip $(src_y)),)
 prepare:
@@ -34,10 +34,11 @@ $(subdir_m):
 	$(Q)$(MAKE)  -C $@ || exit 1 ;
 		
 $(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
-	$(Q)$(LD) -r $(LINK_FLAGS) -o $@ $^
+	$(LD) -r $(LINK_FLAGS) -o $@ $^
 
 $(TARGET):$(BUILDIN_OBJ)
 	$(Q)$(CC) $(LINK_FLAGS) $^  -o $@
+	@echo "Compile    " $^  -o $@
 		
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) -c $<

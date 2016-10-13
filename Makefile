@@ -57,8 +57,8 @@ LINK_FLAGS +=  -w
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
 ##define subdir_y subdir_m  obj_y and TARGET
-subdir_y += core
 subdir_y += lib
+subdir_y += core
 
 subdir_m +=
 
