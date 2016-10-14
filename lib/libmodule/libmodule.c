@@ -40,12 +40,21 @@ int uviot_init(void)
     int result;
     initcall_t *call, *end;
 
+	uviot_get_sect_addr("base_sectiddon", &call, &end);
+    if(call){
+        for (; call<end; call++) {
+            result = (*call)();
+            if(result){
+                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
+                return result;
+            }
+        }
+    }
+	
     uviot_get_sect_addr("core_sectiddon", &call, &end);
     if(call){
         for (; call<end; call++) {
-            printf("before %p\n", call);
             result = (*call)();
-            printf("end of %p\n", call);
             if(result){
                 uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
                 return result;
@@ -82,6 +91,11 @@ int uviot_init(void)
 }
 #endif
 
+static int base_init_dummy(void)
+{
+    return 0;
+}
+
 static int core_init_dummy(void)
 {
     return 0;
@@ -94,7 +108,7 @@ static int late_init_dummy(void)
 {
     return 0;
 }
-
+BASE_INIT(base_init_dummy);
 CORE_INIT(core_init_dummy);
 MODULE_INIT(module_init_dummy);
 LATE_INIT(late_init_dummy);

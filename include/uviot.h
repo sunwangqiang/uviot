@@ -14,7 +14,8 @@
 #include <uviot_log.h>
 #include <uviot_list.h>
 #include <uviot_type.h>
-#include <uviot_modules.h>
+#include <uviot_msg.h>
+#include <uviot_module.h>
 
 #endif
 

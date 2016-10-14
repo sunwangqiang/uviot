@@ -60,7 +60,7 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 subdir_y += lib
 subdir_y += core
 
-subdir_m +=
+subdir_m += 
 
 obj_y += hello.o
 
