@@ -10,12 +10,15 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <assert.h>
+#include <errno.h>
 
 #include <uviot_log.h>
 #include <uviot_list.h>
 #include <uviot_type.h>
 #include <uviot_msg.h>
 #include <uviot_module.h>
+#include <uviot_event.h>
 
 #endif
 

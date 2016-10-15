@@ -7,5 +7,6 @@ subdir_m +=
 obj_y +=
 obj_y += hello.o
 obj_y += uviot_log.o
+obj_y += uviot_event.o
 
 include $(TOP_DIR)/MakeRule

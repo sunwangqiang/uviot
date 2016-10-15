@@ -1,5 +1,5 @@
-#ifndef _LINUX_LIST_H
-#define _LINUX_LIST_H
+#ifndef _UVIOT_LIST_H
+#define _UVIOT_LIST_H
 
 #include <uviot_type.h>
 

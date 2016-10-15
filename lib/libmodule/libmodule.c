@@ -23,12 +23,15 @@ int uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
     if(!memcmp(sect, "module_section")){
         *start = &__start_module_section;
         *end = &__stop_module_section;
-    }else(!memcmp(sect, "core_section")){
+    }else if(!memcmp(sect, "core_section")){
         *start = &__start_core_section;
         *end = &__stop_core_section;
-    }else(!memcmp(sect, "late_section")){
+    }else if(!memcmp(sect, "late_section")){
         *start = &__start_late_section;
         *end = &__stop_late_section;
+    }else if(!memcmp(sect, "base_section")){
+        *start = &__start_base_section;
+        *end = &__stop_base_section;
     }
 }
 

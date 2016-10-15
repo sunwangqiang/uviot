@@ -67,8 +67,13 @@ extern initcall_t __stop_late_section;
 
 #define UVIOT_MODULE_NAME_SIZE 16
 
-struct uviot_module{
+typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
-};
+	struct list_head ev_list;
+}UVIOT_MODULE;
+
+
+
+int uviot_register_module(UVIOT_MODULE *mod);
 
 #endif
