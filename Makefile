@@ -8,7 +8,7 @@ export TOP_DIR RELEASE_DIR BUILDIN_OBJ
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
-V = 0
+V = 1
 ifeq ($(V),1)
   Q =
 else
@@ -47,23 +47,34 @@ BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Wno-format-security 
 
 INCLUDE_DIR    := \
-		-I$(TOP_DIR)/include
+		-I$(TOP_DIR)/include \
+		-I$(TOP_DIR)/lib/libuv/include
 
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
+LINK_LIBS += -L$(TOP_DIR)/lib/libuv/.libs/ -luv
 # -w disable MAC OS X PIE warning
 LINK_FLAGS +=  -w
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
 ##define subdir_y subdir_m  obj_y and TARGET
-subdir_y += lib
+## lib目录下既有编译到可执行文件的库，又有独立的库
+## 先通过subdir_m优先进行编译，然后通过subdir_y_obj链接其生成的buildin.o
+# subdir_y += lib
+
 subdir_y += core
 
-subdir_m += 
+subdir_m += lib
+subdir_m += test 
 
+subdir_y_obj += lib/$(BUILDIN_OBJ)
 obj_y += hello.o
 
 TARGET = uviot
 
 include $(TOP_DIR)/MakeRule
+
+$(TARGET):$(BUILDIN_OBJ)
+	$(Q)$(CC) $(LINK_FLAGS) $(LINK_LIBS) $^  -o $@
+	@echo "Compile    " $^  -o $@

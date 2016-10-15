@@ -1,5 +1,5 @@
 
-subdir_y_obj = $(addsuffix /$(BUILDIN_OBJ),$(subdir_y))
+subdir_y_obj += $(addsuffix /$(BUILDIN_OBJ),$(subdir_y))
 subdir_y_clean := $(addprefix _clean_, $(subdir_y))
 subdir_m_clean := $(addprefix _clean_, $(subdir_m))
 
@@ -36,10 +36,6 @@ $(subdir_m):
 $(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
 	$(LD) -r $(LINK_FLAGS) -o $@ $^
 
-$(TARGET):$(BUILDIN_OBJ)
-	$(Q)$(CC) $(LINK_FLAGS) $^  -o $@
-	@echo "Compile    " $^  -o $@
-		
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
 	@echo "Compile    " $<

@@ -11,7 +11,7 @@ void wait_for_a_while(uv_idle_t* handle) {
 	}
 }
 
-int main() {
+int main(void) {
 	uv_idle_t idler;
     
 	uv_idle_init(uv_default_loop(), &idler);
