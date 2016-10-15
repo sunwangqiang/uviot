@@ -7,15 +7,15 @@ src_y = ${obj_y:%.o=%.c}
 
 
 .PHONY: all $(subdir_y) $(subdir_m)
-all:prepare $(subdir_m) $(BUILDIN_OBJ) $(TARGET)
+all:.depend $(subdir_m) $(BUILDIN_OBJ) $(TARGET)
 
 ifeq ($(strip $(src_y)),)
-prepare:
+.depend:
 
 prepare_clean:
 	
 else
-prepare:
+.depend:$(src_y)
 	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
 
 prepare_clean:
