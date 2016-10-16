@@ -7,9 +7,8 @@ subdir_y +=
 
 subdir_m +=
 
-obj_y += uv_idle.o
+obj_y += uviot_module_test.o
 
-TARGET = uv_idle
 
 include $(TOP_DIR)/MakeRule
 

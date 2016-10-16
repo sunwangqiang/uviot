@@ -20,5 +20,6 @@
 #include <uviot_module.h>
 #include <uviot_event.h>
 
+#define UVIOT_DEBUG 1
 #endif
 

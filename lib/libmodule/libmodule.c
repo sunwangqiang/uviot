@@ -37,13 +37,12 @@ int uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
 
 #endif
 
-#if 1
 int uviot_init(void)
 {
     int result;
     initcall_t *call, *end;
 
-	uviot_get_sect_addr("base_sectiddon", &call, &end);
+	uviot_get_sect_addr("base_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
@@ -54,7 +53,7 @@ int uviot_init(void)
         }
     }
 	
-    uviot_get_sect_addr("core_sectiddon", &call, &end);
+    uviot_get_sect_addr("core_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
@@ -92,7 +91,6 @@ int uviot_init(void)
     
     return result;
 }
-#endif
 
 static int base_init_dummy(void)
 {

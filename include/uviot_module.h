@@ -5,17 +5,20 @@
 #ifndef __UVIOT_MODULE_H
 #define __UVIOT_MODULE_H
 
-
+#include <uviot_event.h>
 
 #define UVIOT_MODULE_NAME_SIZE 16
+#define UVIOT_EVENT_SLOT_SIZE 8
 
 typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
-	struct list_head ev_list;
+	struct hlist_node hlist;
+	struct list_head ev_list;//TODO: move to hlist
+	struct hlist_head ev_head[UVIOT_EVENT_SLOT_SIZE];
 }UVIOT_MODULE;
 
-int uviot_register_module(UVIOT_MODULE *mod);
-
+int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
+int uviot_unregister_module(UVIOT_MODULE *mod);
 
 /*
  * the following code is for init calls

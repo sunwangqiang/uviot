@@ -29,9 +29,14 @@ typedef struct uviot_event
  */
 typedef struct uviot_event_list
 {
-    struct list_head list;
+	struct hlist_node hlist;
     struct uviot_event *head;
 } UVIOT_EVENT_LIST;
+
+
+int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev);
+int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev);
+int uviot_event_show(struct hlist_head *head);
 
 #endif
 

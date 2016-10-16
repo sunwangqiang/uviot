@@ -66,7 +66,7 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 subdir_y += core
 
 subdir_m += lib
-subdir_m += test 
+subdir_y += test 
 
 subdir_y_obj += lib/$(BUILDIN_OBJ)
 obj_y += hello.o

@@ -18,19 +18,43 @@ static int __uviot_event_call(UVIOT_EVENT **head, void *msg, u32 len)
     return ret;
 }
 
-int uviot_event_call(struct list_head *head, u32 id, void *msg, u32 len)
+int uviot_event_call(struct hlist_head *head, u32 id, void *msg, u32 len)
 {
-    struct list_head *p, *n;
+    struct hlist_node *p, *n;
     UVIOT_EVENT_LIST *el;
 
-    list_for_each_safe(p, n, head){
-        el = (UVIOT_EVENT_LIST *)list_entry(p, UVIOT_EVENT_LIST, list);
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
         if (el->head->id != id){
             continue ;
         }
         return __uviot_event_call(&el->head, msg, len);
     }
     return -EINVAL;
+}
+
+static int __uviot_event_show(UVIOT_EVENT **head)
+{
+    UVIOT_EVENT *ev;
+
+    ev = *head;
+    while (ev){
+        printf("event: id = %08x, handler = %p\n", ev->id, ev->handler);;
+        ev = ev->next;
+    }
+    return 0;
+}
+
+int uviot_event_show(struct hlist_head *head)
+{
+    struct hlist_node *p, *n;
+    UVIOT_EVENT_LIST *el;
+
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
+        __uviot_event_show(&el->head);
+    }
+    return 0;
 }
 
 static int __uviot_event_register(UVIOT_EVENT **head, UVIOT_EVENT *n)
@@ -58,17 +82,17 @@ static int __uviot_event_unregister(UVIOT_EVENT **head, UVIOT_EVENT *n)
     return -ENOENT;
 }
 
-int uviot_event_register(struct list_head *head, UVIOT_EVENT *ev)
+int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev)
 {
-    struct list_head *p, *n;
+    struct hlist_node *p, *n;
     UVIOT_EVENT_LIST *el;
 
     if (!head || !ev || (!ev->handler)){
         return -EINVAL;
     }
 
-    list_for_each_safe(p, n, head){
-        el = (UVIOT_EVENT_LIST *)list_entry(p, UVIOT_EVENT_LIST, list);
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
         if (el->head->id == ev->id){
             return __uviot_event_register(&el->head, ev);
         }
@@ -85,13 +109,13 @@ int uviot_event_register(struct list_head *head, UVIOT_EVENT *ev)
     el->head = ev;
     el->head->next = NULL;
 
-    list_add(&el->list, head);
+    hlist_add_head(&el->hlist, head);
     return 0;
 }
 
-int uviot_event_unregister(struct list_head *head, UVIOT_EVENT *ev)
+int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev)
 {
-    struct list_head *p, *n;
+    struct hlist_node *p, *n;
     UVIOT_EVENT_LIST *el;
     int ret;
 
@@ -99,15 +123,15 @@ int uviot_event_unregister(struct list_head *head, UVIOT_EVENT *ev)
         return -EINVAL;
     }
 
-    list_for_each_safe(p, n, head){
-        el = (UVIOT_EVENT_LIST *)list_entry(p, UVIOT_EVENT_LIST, list);
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
         if (el->head->id != ev->id){
             continue ;
         }
 
         ret = __uviot_event_unregister(&el->head, ev);
         if (el->head == NULL){
-            list_del(&el->list);
+            hlist_del(&el->hlist);
             free(el);
         }
         return ret;
