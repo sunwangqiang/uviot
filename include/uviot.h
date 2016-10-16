@@ -12,6 +12,7 @@
 #include <math.h>
 #include <assert.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <uviot_log.h>
 #include <uviot_list.h>
@@ -21,5 +22,7 @@
 #include <uviot_event.h>
 
 #define UVIOT_DEBUG 1
+#define UVIOT_PIPENAME "/tmp/uviot-unix-sock"
+
 #endif
 

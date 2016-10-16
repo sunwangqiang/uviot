@@ -31,7 +31,7 @@ do{                                                           \
     int i, j;                                                 \
     int data_len = (len);                                      \
     if(level <= uviot_log_get_level()){                 \
-        printf("%s:%d data = %p, len = %d\n", __func__, __LINE__, data, data_len);\
+        printf("%s:%d data = %p, len = %d\n", __func__, __LINE__, buf, data_len);\
         for(i = 0; i < data_len; i += 16) {                            \
             printf("%06x: ", (unsigned int)(i+data));             \
             for (j = 0; j < 16; j++){                             \

@@ -69,7 +69,6 @@ subdir_m += lib
 subdir_y += test 
 
 subdir_y_obj += lib/$(BUILDIN_OBJ)
-obj_y += hello.o
 
 TARGET = uviot
 
