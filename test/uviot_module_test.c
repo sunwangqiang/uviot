@@ -1,5 +1,8 @@
 #include <uviot.h>
 
+UVIOT_OBJ_OPS test_obj_ops = {
+	
+};
 
 static s32 test_ev_handler(struct uviot_event *ev, void *msg, u32 len)
 {
@@ -18,6 +21,8 @@ static UVIOT_EVENT test_ev = {
 int uviot_module_test_init()
 {
 	uviot_register_module(&test_mod, &test_ev, 1);
+	uviot_register_obj_ops("Test.Obj.Ops", &test_obj_ops);
+	
 	return 0;
 }
 
