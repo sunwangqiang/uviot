@@ -3,7 +3,8 @@ subdir_y +=
 subdir_y += libmodule
 
 subdir_m +=
-subdir_m += libuv
+subdir_m += $(LIBUV)
+subdir_m += $(JASSON)
 
 obj_y +=
 

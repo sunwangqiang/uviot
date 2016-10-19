@@ -28,10 +28,10 @@ endif
 $(subdir_y_obj):$(subdir_y)
 	
 $(subdir_y):
-	$(Q)$(MAKE)  -C $@ || exit 1 ;
+	$(MAKE)  -C $@ || exit 1 ;
 
 $(subdir_m):
-	$(Q)$(MAKE)  -C $@ || exit 1 ;
+	$(MAKE)  -C $@ || exit 1 ;
 		
 $(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
 	$(LD) -r $(LINK_FLAGS) -o $@ $^
