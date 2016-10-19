@@ -9,5 +9,6 @@ obj_y += uviot.o
 obj_y += uviot_log.o
 obj_y += uviot_event.o
 obj_y += uviot_module.o
+obj_y += uviot_obj.o
 
 include $(TOP_DIR)/MakeRule

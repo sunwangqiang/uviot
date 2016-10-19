@@ -55,10 +55,11 @@ INCLUDE_DIR    := \
 
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
-LINK_LIBS += -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
-             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson
+LINK_LIBS +=  \
+             -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
+             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson 
 # -w disable MAC OS X PIE warning
-LINK_FLAGS +=  -w
+LINK_FLAGS +=  -w -Wl,-rpath,$(TOP_DIR)/lib/$(JANSSON)/src/.libs/
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 

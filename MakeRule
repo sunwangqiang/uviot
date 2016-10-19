@@ -34,7 +34,7 @@ $(subdir_m):
 	$(MAKE)  -C $@ || exit 1 ;
 		
 $(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
-	$(LD) -r $(LINK_FLAGS) -o $@ $^
+	$(LD) -r -o $@ $^
 
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
