@@ -18,7 +18,7 @@
 * __adapters__ 用于存放设备的适配代码，类似于linux kernel中的driver
 * __board__ 存放不同单板的配置或相关代码
 * __core__ uviot核心代码，包括module机制、关键数据结构和代码等
-* __include__ uviot暴露的借口文件
+* __include__ uviot暴露的接口文件
 * __io__ 保存单板硬件接口访问接口
 * __lib__ uviot引用的外部库或者对外提供的库
 * __release__ 保存最终编译结果，make install?
