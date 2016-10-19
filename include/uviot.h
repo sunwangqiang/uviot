@@ -20,6 +20,7 @@
 #include <uviot_msg.h>
 #include <uviot_module.h>
 #include <uviot_event.h>
+#include <uviot_obj.h>
 
 #define UVIOT_DEBUG 1
 #define UVIOT_PIPENAME "/tmp/uviot-unix-sock"

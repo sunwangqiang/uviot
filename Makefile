@@ -3,10 +3,10 @@ TOP_DIR  = $(shell pwd)
 RELEASE_DIR = $(TOP_DIR)/release
 BUILDIN_OBJ = buildin.o
 LIBUV = libuv-1.9.1
-JASSON = jansson-2.9
+JANSSON = jansson-2.9
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
-export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JASSON
+export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
@@ -50,11 +50,13 @@ BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
 
 INCLUDE_DIR    := \
 		-I$(TOP_DIR)/include \
-		-I$(TOP_DIR)/lib/$(LIBUV)/include
+		-I$(TOP_DIR)/lib/$(LIBUV)/include \
+		-I$(TOP_DIR)/lib/$(JANSSON)/src
 
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
-LINK_LIBS += -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv
+LINK_LIBS += -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
+             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson
 # -w disable MAC OS X PIE warning
 LINK_FLAGS +=  -w
 

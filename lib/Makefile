@@ -4,7 +4,7 @@ subdir_y += libmodule
 
 subdir_m +=
 subdir_m += $(LIBUV)
-subdir_m += $(JASSON)
+subdir_m += $(JANSSON)
 
 obj_y +=
 
