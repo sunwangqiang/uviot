@@ -4,9 +4,10 @@ RELEASE_DIR = $(TOP_DIR)/release
 BUILDIN_OBJ = buildin.o
 LIBUV = libuv-1.9.1
 JANSSON = jansson-2.9
+CURL = curl-7.50.3
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
-export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON
+export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
