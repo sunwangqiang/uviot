@@ -4,8 +4,12 @@
 #define UVIOT_EVENT_CONTINUE 0x0001
 #define UVIOT_EVENT_STOP 0x0002
 
+enum {
+    UVIOT_MODULE_START,
+    UVIOT_MODULE_STOP,
+};
 
-enum UVIOT_event_hook_priorities
+enum uviot_event_hook_priorities
 {
     UVIOT_EVENT_PRI_FIRST = (-((int)(~0U>>1))-1),
     UVIOT_EVENT_PRI_HIGH = -2000,

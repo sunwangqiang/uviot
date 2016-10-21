@@ -30,6 +30,25 @@ void uviot_pipe_recv_data(uv_stream_t *stream, ssize_t nread, const uv_buf_t *bu
     }
 }
 
+
+int uviot_init(void)
+{
+    int result;
+    
+    result = uviot_section_init();
+    if(result){
+        return result;
+    }
+    result = uviot_module_start();
+    if(result){
+        return result;
+    }
+    
+    uviot_log(UVIOT_LOG_INFO, "ok\n");
+    
+    return 0;
+}
+
 int main(void)
 {
     uviot_init();

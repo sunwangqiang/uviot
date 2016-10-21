@@ -73,8 +73,8 @@ subdir_y += core
 
 subdir_m += lib
 subdir_y += test 
-
-subdir_y_obj += lib/$(BUILDIN_OBJ)
+obj_y +=
+# subdir_y_obj += lib/$(BUILDIN_OBJ)
 
 TARGET = uviot
 

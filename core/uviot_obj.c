@@ -1,4 +1,5 @@
 #include <uviot.h>
+
 static json_t *uviot_ops_table;
 
 int uviot_register_obj_ops(char *name, UVIOT_OBJ_OPS *ops)

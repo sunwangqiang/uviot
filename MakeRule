@@ -9,18 +9,13 @@ src_y = ${obj_y:%.o=%.c}
 .PHONY: all $(subdir_y) $(subdir_m)
 all:.depend $(subdir_m) $(BUILDIN_OBJ) $(TARGET)
 
-ifeq ($(strip $(src_y)),)
-.depend:
-
-prepare_clean:
-	
-else
 .depend:$(src_y)
+ifneq ($(strip $(src_y)),)
 	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
+endif
 
 prepare_clean:
 	$(Q)$(RM) -fr .depend
-endif
 	
 -include .depend
 
@@ -34,7 +29,9 @@ $(subdir_m):
 	$(MAKE)  -C $@ || exit 1 ;
 		
 $(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
+ifneq ($(strip $(obj_y)$(subdir_y_obj)),)
 	$(LD) -r -o $@ $^
+endif
 
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) -c $<

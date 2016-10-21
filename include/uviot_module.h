@@ -13,13 +13,16 @@
 typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
 	struct hlist_node hlist;
-	struct list_head ev_list;//TODO: move to hlist
 	struct hlist_head ev_head[UVIOT_EVENT_SLOT_SIZE];
 }UVIOT_MODULE;
 
+
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 int uviot_unregister_module(UVIOT_MODULE *mod);
+int uviot_attach_event(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 
+int uviot_section_init(void);
+int uviot_module_start(void);
 /*
  * the following code is for init calls
  */
