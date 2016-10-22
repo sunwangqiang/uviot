@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <uviot_section.h>
 #include <uviot_log.h>
 #include <uviot_list.h>
 #include <uviot_type.h>
@@ -24,6 +25,10 @@
 
 #define UVIOT_DEBUG 1
 #define UVIOT_PIPENAME "/tmp/uviot-unix-sock"
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
+#endif
 
 #endif
 

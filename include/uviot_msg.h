@@ -8,8 +8,8 @@ typedef struct uviot_msg
     char *dst;
     char *src;
     u32 id;
-    json_t req;
-    json_t rsp;
+    json_t *req;
+    json_t *rsp;
 }UVIOT_MSG;
 
 #endif

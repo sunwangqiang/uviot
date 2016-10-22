@@ -5,13 +5,13 @@
 #ifndef __UVIOT_MODULE_H
 #define __UVIOT_MODULE_H
 
-#include <uviot_event.h>
-
 #define UVIOT_MODULE_NAME_SIZE 16
 #define UVIOT_EVENT_SLOT_SIZE 8
 
 #define UVIOT_LIST_MODULE_STOP 0x01
 #define UVIOT_LIST_MODULE_CONTINUE 0x02
+
+#define UVIOT_BROADCAST_DST "ffff.ffff.ffff"
 
 typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
@@ -20,73 +20,82 @@ typedef struct uviot_module{
 }UVIOT_MODULE;
 
 
+
+#define UVIOT_EVENT_CONTINUE 0x0001
+#define UVIOT_EVENT_STOP 0x0002
+
+enum {
+    UVIOT_MODULE_START,
+    UVIOT_MODULE_STOP,
+};
+
+enum uviot_event_hook_priorities
+{
+    UVIOT_EVENT_PRI_FIRST = (-((int)(~0U>>1))-1),
+    UVIOT_EVENT_PRI_HIGH = -2000,
+    UVIOT_EVENT_PRI_DEFAULT = 0,
+    UVIOT_EVENT_PRI_LOW = 2000,
+    UVIOT_EVENT_PRI_LAST = ((int)(~0U>>1))
+};
+
+typedef struct uviot_event
+{
+    u32  id;
+    s32 (*handler)(struct uviot_event *, UVIOT_MSG *);
+    struct uviot_event *next;
+    s32 priority;
+    void *priv;
+}UVIOT_EVENT;
+
+
+/*
+ * event notifier call chain
+ */
+typedef struct uviot_event_list
+{
+	struct hlist_node hlist;
+    struct uviot_event *head;
+} UVIOT_EVENT_LIST;
+
+
+// BKDR Hash Function
+static inline u32 bkdr_hash(char *str)
+{
+    u32 seed = 131; // 31 131 1313 13131 131313 etc..
+    u32 hash = 0;
+
+    while (*str){
+        hash = hash * seed + (*str++);
+    }
+
+    return (hash & 0x7FFFFFFF);
+}
+
+static inline u32 u32_hash(u32 value)
+{
+	u32 hash;
+	u8 *c;
+	
+	c = (u8 *)&value;
+	hash = c[0] + c[1] + c[2] + c[3];
+	
+	return hash;
+}
+
+int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev);
+int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev);
+int uviot_event_show(struct hlist_head *head);
+
+int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_MSG *msg);
+
+
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 int uviot_unregister_module(UVIOT_MODULE *mod);
 int uviot_attach_event(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg);
+UVIOT_MODULE *uviot_lookup_module(char *name);
 
 int uviot_section_init(void);
 int uviot_module_start(void);
-/*
- * the following code is for init calls
- */
-typedef int (*initcall_t)(void);
-typedef void (*exitcall_t)(void);
-
-#if defined(__APPLE__) && defined(__MACH__)
-
-#define __define_base_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("__TEXT, base_section"))) = fn
-
-#define __define_core_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("__TEXT, core_section"))) = fn
-
-#define __define_module_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("__TEXT, module_section"))) = fn
-
-#define __define_late_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("__TEXT, late_section"))) = fn
-
-#else
-
-#define __define_base_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("base_section"))) = fn
-
-#define __define_core_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("core_section"))) = fn
-
-#define __define_module_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("module_section"))) = fn
-
-#define __define_late_initcall(fn) \
-static initcall_t __initcall_##fn  \
-__attribute__((used, __section__("late_section"))) = fn
-
-
-extern initcall_t __start_base_section;
-extern initcall_t __stop_base_section;
-
-extern initcall_t __start_core_section;
-extern initcall_t __stop_core_section;
-
-extern initcall_t __start_module_section;
-extern initcall_t __stop_module_section;
-
-extern initcall_t __start_late_section;
-extern initcall_t __stop_late_section;
-
-#endif
-
-#define BASE_INIT(fn)  __define_base_initcall(fn)
-#define CORE_INIT(fn) __define_core_initcall(fn)
-#define MODULE_INIT(fn)  __define_module_initcall(fn)
-#define LATE_INIT(fn) __define_late_initcall(fn)
 
 #endif

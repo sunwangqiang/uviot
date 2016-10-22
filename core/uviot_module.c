@@ -4,30 +4,6 @@
 
 static struct hlist_head *mod_head;
 
-// BKDR Hash Function
-static u32 bkdr_hash(char *str)
-{
-    u32 seed = 131; // 31 131 1313 13131 131313 etc..
-    u32 hash = 0;
-
-    while (*str){
-        hash = hash * seed + (*str++);
-    }
-
-    return (hash & 0x7FFFFFFF);
-}
-
-static inline u32 u32_hash(u32 value)
-{
-	u32 hash;
-	u8 *c;
-	
-	c = (u8 *)&value;
-	hash = c[0] + c[1] + c[2] + c[3];
-	
-	return hash;
-}
-
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
 {
 	u32 hash;
@@ -90,10 +66,10 @@ int uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
     
     hash = u32_hash(msg->id) & (UVIOT_EVENT_SLOT_SIZE -1);
     
-    return uviot_event_call(&mod->ev_head[hash], msg);
+    return uviot_event_call(mod, &mod->ev_head[hash], msg);
 }
 
-int uviot_broadcast_msg_cb(UVIOT_MODULE *mod, void *arg)
+int uviot_module_broadcast_msg_cb(UVIOT_MODULE *mod, void *arg)
 {
     UVIOT_MSG *msg = (UVIOT_MSG *)arg;
     
@@ -102,9 +78,44 @@ int uviot_broadcast_msg_cb(UVIOT_MODULE *mod, void *arg)
     return UVIOT_LIST_MODULE_CONTINUE;
 }
 
-void uviot_broadcast_msg(UVIOT_MSG *msg)
+UVIOT_MODULE *uviot_lookup_module(char *name)
 {
-    uviot_list_each_module(uviot_broadcast_msg_cb, msg);
+    u32 hash;
+    struct hlist_node *p, *n;
+    UVIOT_MODULE *mod;
+    
+    
+	hash = bkdr_hash(name);
+	hash = hash & (UVIOT_MOD_SLOT_SIZE-1);
+    
+    hlist_for_each_safe(p, n, &mod_head[hash]){
+        mod = (UVIOT_MODULE *)hlist_entry(p, UVIOT_MODULE, hlist);
+        if(!strcmp(name, mod->name)){
+            return mod;
+        }
+    }
+    return NULL;
+}
+
+void uviot_process_msg(UVIOT_MSG *msg)
+{
+    UVIOT_MODULE *mod;
+    
+    if(!msg->dst){
+        return;
+    }
+    
+    mod = uviot_lookup_module(msg->dst);
+    if(mod){
+        uviot_module_process_msg(mod, msg);
+        return;
+    }
+
+    if(!strcmp(msg->dst, UVIOT_BROADCAST_DST)){
+        uviot_list_each_module(uviot_module_broadcast_msg_cb, msg);
+        return;
+    }
+    return;
 }
 
 void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg)
@@ -138,8 +149,9 @@ int uviot_module_start(void)
     
     memset(&msg, 0, sizeof(UVIOT_MSG));
     msg.id = UVIOT_MODULE_START;
+    msg.dst = UVIOT_BROADCAST_DST;
     
-    uviot_broadcast_msg(&msg);
+    uviot_process_msg(&msg);
     
     return 0;
 }
@@ -180,113 +192,146 @@ LATE_INIT(uviot_debug);
 #endif
 
 
-/*
- * the following code is for section init
- */
 
-
-#if defined(__APPLE__) && defined(__MACH__)
-
-#include <mach-o/getsect.h>
-
-void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
+static int __uviot_event_call(UVIOT_MODULE *mod, UVIOT_EVENT **head, UVIOT_MSG *msg)
 {
-    unsigned long size;
+    UVIOT_EVENT *ev;
+    int  ret = UVIOT_EVENT_CONTINUE;
 
-    *start = (initcall_t *)getsectdata("__TEXT", sect, &size);
-    *end = (initcall_t *)((char *)(*start) + size);
-}
-
-#else // for gcc
-
-int uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
-{
-    if(!memcmp(sect, "module_section")){
-        *start = &__start_module_section;
-        *end = &__stop_module_section;
-    }else if(!memcmp(sect, "core_section")){
-        *start = &__start_core_section;
-        *end = &__stop_core_section;
-    }else if(!memcmp(sect, "late_section")){
-        *start = &__start_late_section;
-        *end = &__stop_late_section;
-    }else if(!memcmp(sect, "base_section")){
-        *start = &__start_base_section;
-        *end = &__stop_base_section;
+    ev = *head;
+    while (ev){
+        uviot_log(UVIOT_LOG_DEBUG, "module[%s] process msg {dst:%s, src:%s, id:%08x, req:%p, res:%p}\n",
+                  mod->name, msg->dst, msg->src, msg->id, msg->req, msg->rsp);
+        
+        ret = ev->handler(ev, msg);
+        if (ret == UVIOT_EVENT_STOP){
+            break;
+        }
+        ev = ev->next;
     }
+    return ret;
 }
 
-#endif
-
-int uviot_section_init(void)
+int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_MSG *msg)
 {
-    int result;
-    initcall_t *call, *end;
+    struct hlist_node *p, *n;
+    UVIOT_EVENT_LIST *el;
 
-	uviot_get_sect_addr("base_section", &call, &end);
-    if(call){
-        for (; call<end; call++) {
-            result = (*call)();
-            if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
-                return result;
-            }
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
+        if (el->head->id != msg->id){
+            continue ;
+        }
+        return __uviot_event_call(mod, &el->head, msg);
+    }
+    return -EINVAL;
+}
+
+static int __uviot_event_show(UVIOT_EVENT **head)
+{
+    UVIOT_EVENT *ev;
+
+    ev = *head;
+    while (ev){
+        printf("event: id = %08x, handler = %p\n", ev->id, ev->handler);;
+        ev = ev->next;
+    }
+    return 0;
+}
+
+int uviot_event_show(struct hlist_head *head)
+{
+    struct hlist_node *p, *n;
+    UVIOT_EVENT_LIST *el;
+
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
+        __uviot_event_show(&el->head);
+    }
+    return 0;
+}
+
+static int __uviot_event_register(UVIOT_EVENT **head, UVIOT_EVENT *n)
+{
+    while ((*head) != NULL){
+        if (n->priority < (*head)->priority){
+            break;
+        }
+        head = &((*head)->next);
+    }
+    n->next = *head;
+    *head = n;
+    return 0;
+}
+
+static int __uviot_event_unregister(UVIOT_EVENT **head, UVIOT_EVENT *n)
+{
+    while ((*head) != NULL){
+        if ((*head) == n){
+            *head = n->next;
+            return 0;
+        }
+        head = &((*head)->next);
+    }
+    return -ENOENT;
+}
+
+int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev)
+{
+    struct hlist_node *p, *n;
+    UVIOT_EVENT_LIST *el;
+
+    if (!head || !ev || (!ev->handler)){
+        return -EINVAL;
+    }
+
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
+        if (el->head->id == ev->id){
+            return __uviot_event_register(&el->head, ev);
         }
     }
-	
-    uviot_get_sect_addr("core_section", &call, &end);
-    if(call){
-        for (; call<end; call++) {
-            result = (*call)();
-            if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
-                return result;
-            }
-        }
+
+    /*
+     * new event
+     */
+    el = malloc(sizeof(UVIOT_EVENT_LIST));
+    if (!el)
+    {
+        return -ENOMEM ;
+    }
+    el->head = ev;
+    el->head->next = NULL;
+
+    hlist_add_head(&el->hlist, head);
+    return 0;
+}
+
+int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev)
+{
+    struct hlist_node *p, *n;
+    UVIOT_EVENT_LIST *el;
+    int ret;
+
+    if (!head || !ev || (!ev->handler)){
+        return -EINVAL;
     }
 
-    uviot_get_sect_addr("module_section", &call, &end);
-    if(call){
-        for (; call<end; call++) {
-            result = (*call)();
-            if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
-                return result;            
-            }        
+    hlist_for_each_safe(p, n, head){
+        el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
+        if (el->head->id != ev->id){
+            continue ;
         }
+
+        ret = __uviot_event_unregister(&el->head, ev);
+        if (el->head == NULL){
+            hlist_del(&el->hlist);
+            free(el);
+        }
+        return ret;
     }
 
-    uviot_get_sect_addr("late_section", &call, &end);
-    if(call){
-        for (; call<end; call++) {
-            result = (*call)();
-            if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
-                return result;            
-            }        
-        }
-    }
-    return 0;
+    return -EINVAL;
 }
 
-static int base_init_dummy(void)
-{
-    return 0;
-}
 
-static int core_init_dummy(void)
-{
-    return 0;
-}
-static int module_init_dummy(void)
-{
-    return 0;
-}
-static int late_init_dummy(void)
-{
-    return 0;
-}
-BASE_INIT(base_init_dummy);
-CORE_INIT(core_init_dummy);
-MODULE_INIT(module_init_dummy);
-LATE_INIT(late_init_dummy);

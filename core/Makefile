@@ -7,7 +7,7 @@ subdir_m +=
 obj_y +=
 obj_y += uviot.o
 obj_y += uviot_log.o
-obj_y += uviot_event.o
+obj_y += uviot_section.o
 obj_y += uviot_module.o
 obj_y += uviot_obj.o
 
