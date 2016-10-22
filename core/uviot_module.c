@@ -84,11 +84,63 @@ static int uviot_module_init(void)
 
 BASE_INIT(uviot_module_init);
 
+int uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+{
+    u32 hash;
+    
+    hash = u32_hash(msg->id) & (UVIOT_EVENT_SLOT_SIZE -1);
+    
+    return uviot_event_call(&mod->ev_head[hash], msg);
+}
+
+int uviot_broadcast_msg_cb(UVIOT_MODULE *mod, void *arg)
+{
+    UVIOT_MSG *msg = (UVIOT_MSG *)arg;
+    
+    uviot_module_process_msg(mod, msg);
+    
+    return UVIOT_LIST_MODULE_CONTINUE;
+}
+
+void uviot_broadcast_msg(UVIOT_MSG *msg)
+{
+    uviot_list_each_module(uviot_broadcast_msg_cb, msg);
+}
+
+void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg)
+{
+    int i;
+    int ret;
+    struct hlist_node *p, *n;
+    UVIOT_MODULE *mod;
+    
+    for(i = 0; i<UVIOT_MOD_SLOT_SIZE; i++){
+        if(hlist_empty(&mod_head[i])){
+            continue;
+        }
+        hlist_for_each_safe(p, n, &mod_head[i]){
+            mod = (UVIOT_MODULE *)hlist_entry(p, UVIOT_MODULE, hlist);
+            ret = cb(mod, arg);
+            if(ret == UVIOT_LIST_MODULE_STOP){
+                return;
+            }
+        }
+    }
+    return;
+}
+
 /*
  * send UVIOT_MODULE_START event to module
  */
 int uviot_module_start(void)
 {
+    UVIOT_MSG msg;
+    
+    memset(&msg, 0, sizeof(UVIOT_MSG));
+    msg.id = UVIOT_MODULE_START;
+    
+    uviot_broadcast_msg(&msg);
+    
     return 0;
 }
 

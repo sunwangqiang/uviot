@@ -10,6 +10,9 @@
 #define UVIOT_MODULE_NAME_SIZE 16
 #define UVIOT_EVENT_SLOT_SIZE 8
 
+#define UVIOT_LIST_MODULE_STOP 0x01
+#define UVIOT_LIST_MODULE_CONTINUE 0x02
+
 typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
 	struct hlist_node hlist;
@@ -20,6 +23,7 @@ typedef struct uviot_module{
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 int uviot_unregister_module(UVIOT_MODULE *mod);
 int uviot_attach_event(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
+void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg);
 
 int uviot_section_init(void);
 int uviot_module_start(void);

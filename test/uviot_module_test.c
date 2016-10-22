@@ -4,7 +4,7 @@ UVIOT_OBJ_OPS test_obj_ops = {
 	
 };
 
-static s32 test_ev_handler(struct uviot_event *ev, void *msg, u32 len)
+static s32 test_ev_handler(struct uviot_event *ev, UVIOT_MSG *msg)
 {
 	return 0;
 }

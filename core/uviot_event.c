@@ -2,14 +2,14 @@
 
 #include <uviot.h>
 
-static int __uviot_event_call(UVIOT_EVENT **head, void *msg, u32 len)
+static int __uviot_event_call(UVIOT_EVENT **head, UVIOT_MSG *msg)
 {
     UVIOT_EVENT *ev;
     int  ret = UVIOT_EVENT_CONTINUE;
 
     ev = *head;
     while (ev){
-        ret = ev->handler(ev, msg, len);
+        ret = ev->handler(ev, msg);
         if (ret == UVIOT_EVENT_STOP){
             break;
         }
@@ -18,17 +18,17 @@ static int __uviot_event_call(UVIOT_EVENT **head, void *msg, u32 len)
     return ret;
 }
 
-int uviot_event_call(struct hlist_head *head, u32 id, void *msg, u32 len)
+int uviot_event_call(struct hlist_head *head, UVIOT_MSG *msg)
 {
     struct hlist_node *p, *n;
     UVIOT_EVENT_LIST *el;
 
     hlist_for_each_safe(p, n, head){
         el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
-        if (el->head->id != id){
+        if (el->head->id != msg->id){
             continue ;
         }
-        return __uviot_event_call(&el->head, msg, len);
+        return __uviot_event_call(&el->head, msg);
     }
     return -EINVAL;
 }

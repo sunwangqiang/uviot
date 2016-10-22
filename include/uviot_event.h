@@ -1,6 +1,8 @@
 #ifndef __UVIOT_EVENT_HANDLER_H
 #define __UVIOT_EVENT_HANDLER_H
 
+#include <uviot_msg.h>
+
 #define UVIOT_EVENT_CONTINUE 0x0001
 #define UVIOT_EVENT_STOP 0x0002
 
@@ -21,7 +23,7 @@ enum uviot_event_hook_priorities
 typedef struct uviot_event
 {
     u32  id;
-    s32 (*handler)(struct uviot_event *, void *msg, u32 len);
+    s32 (*handler)(struct uviot_event *, UVIOT_MSG *);
     struct uviot_event *next;
     s32 priority;
     void *priv;
@@ -41,6 +43,8 @@ typedef struct uviot_event_list
 int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev);
 int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev);
 int uviot_event_show(struct hlist_head *head);
+
+int uviot_event_call(struct hlist_head *head, UVIOT_MSG *msg);
 
 #endif
 
