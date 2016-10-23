@@ -36,6 +36,9 @@ int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
 	return 0;
 }
 
+/*
+ * TODO:
+ */
 int uviot_unregister_module(UVIOT_MODULE *mod)
 {
 	return 0;
@@ -58,24 +61,19 @@ static int uviot_module_init(void)
 	return 0;
 }
 
-BASE_INIT(uviot_module_init);
-
-int uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+void uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
 {
     u32 hash;
     
     hash = u32_hash(msg->id) & (UVIOT_EVENT_SLOT_SIZE -1);
     
-    return uviot_event_call(mod, &mod->ev_head[hash], msg);
-}
-
-int uviot_module_broadcast_msg_cb(UVIOT_MODULE *mod, void *arg)
-{
-    UVIOT_MSG *msg = (UVIOT_MSG *)arg;
+    uviot_event_call(mod, &mod->ev_head[hash], msg);
     
-    uviot_module_process_msg(mod, msg);
+    if(msg->callback){
+        msg->callback(msg);
+    }
     
-    return UVIOT_LIST_MODULE_CONTINUE;
+    return;
 }
 
 UVIOT_MODULE *uviot_lookup_module(char *name)
@@ -97,26 +95,6 @@ UVIOT_MODULE *uviot_lookup_module(char *name)
     return NULL;
 }
 
-void uviot_process_msg(UVIOT_MSG *msg)
-{
-    UVIOT_MODULE *mod;
-    
-    if(!msg->dst){
-        return;
-    }
-    
-    mod = uviot_lookup_module(msg->dst);
-    if(mod){
-        uviot_module_process_msg(mod, msg);
-        return;
-    }
-
-    if(!strcmp(msg->dst, UVIOT_BROADCAST_DST)){
-        uviot_list_each_module(uviot_module_broadcast_msg_cb, msg);
-        return;
-    }
-    return;
-}
 
 void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg)
 {
@@ -140,8 +118,14 @@ void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg)
     return;
 }
 
+int uviot_module_start_callback(struct uviot_msg *msg)
+{
+    printf("UVIOT_MODULE_START msg callback\n");
+    return 0;
+}
+
 /*
- * send UVIOT_MODULE_START event to module
+ * send UVIOT_MODULE_START event to every module
  */
 int uviot_module_start(void)
 {
@@ -150,7 +134,7 @@ int uviot_module_start(void)
     memset(&msg, 0, sizeof(UVIOT_MSG));
     msg.id = UVIOT_MODULE_START;
     msg.dst = UVIOT_BROADCAST_DST;
-    
+    msg.callback = uviot_module_start_callback;
     uviot_process_msg(&msg);
     
     return 0;
@@ -334,4 +318,4 @@ int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev)
     return -EINVAL;
 }
 
-
+BASE_INIT(uviot_module_init);

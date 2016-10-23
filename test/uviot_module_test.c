@@ -20,7 +20,7 @@ static UVIOT_MODULE test_mod ={
 
 static UVIOT_EVENT test_ev[] = 
 {
-	{.id = 0xdeadbeef, .handler = test_ev_handler},
+    {.id = 0xdeadbeef, .handler = test_ev_handler},
     {.id = UVIOT_MODULE_START, .handler = test_mod_start},
 };
 
