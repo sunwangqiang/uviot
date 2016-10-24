@@ -90,7 +90,7 @@ int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_MSG *msg)
 
 UVIOT_MODULE *uviot_lookup_module(char *name);
 
-void uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg);
+void uviot_module_recv_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg);
 
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 int uviot_unregister_module(UVIOT_MODULE *mod);

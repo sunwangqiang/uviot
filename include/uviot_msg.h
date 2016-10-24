@@ -5,16 +5,26 @@
 
 typedef struct uviot_msg
 {
+    /* connect */
     char *remote;
-    char *dst;
     char *local;
+    
+    /* module */
+    char *dst;
     char *src;
-    u32 id;
+    
+    /* event */
+    u32 id; 
+
+    /* business */
     json_t *req;
     json_t *rsp;
+
+    /* context */
     int (*callback)(struct uviot_msg *);
+    void *priv;
 }UVIOT_MSG;
 
-int uviot_process_msg(UVIOT_MSG *msg);
+int uviot_xmit_msg(UVIOT_MSG *msg);
 
 #endif

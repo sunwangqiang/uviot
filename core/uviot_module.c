@@ -61,7 +61,7 @@ static int uviot_module_init(void)
 	return 0;
 }
 
-void uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+void uviot_module_recv_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
 {
     u32 hash;
     
@@ -74,6 +74,13 @@ void uviot_module_process_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
     }
     
     return;
+}
+
+void uviot_module_xmit_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+{
+
+    msg->src = mod->name;
+    return uviot_xmit_msg(msg);
 }
 
 UVIOT_MODULE *uviot_lookup_module(char *name)
@@ -132,10 +139,12 @@ int uviot_module_start(void)
     UVIOT_MSG msg;
     
     memset(&msg, 0, sizeof(UVIOT_MSG));
+    
     msg.id = UVIOT_MODULE_START;
     msg.dst = UVIOT_BROADCAST_DST;
     msg.callback = uviot_module_start_callback;
-    uviot_process_msg(&msg);
+    
+    uviot_xmit_msg(&msg);
     
     return 0;
 }
