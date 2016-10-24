@@ -12,4 +12,4 @@ int uviot_conn_init(void)
     return 0;
 }
 
-BASE_INIT(uviot_conn_init);
+CORE_INIT(uviot_conn_init);

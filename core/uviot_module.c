@@ -327,4 +327,5 @@ int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev)
     return -EINVAL;
 }
 
-BASE_INIT(uviot_module_init);
+CORE_INIT(uviot_module_init);
+
