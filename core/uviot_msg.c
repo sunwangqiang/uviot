@@ -38,7 +38,8 @@ int uviot_xmit_msg(UVIOT_MSG *msg)
         return -1;
     }
     if(!msg->remote){
-       return uviot_msg_recv_local_msg(msg);
+       uviot_msg_recv_local_msg(msg);
+       return 0;
     }
     
     /*

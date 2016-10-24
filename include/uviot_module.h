@@ -25,7 +25,7 @@ typedef struct uviot_module{
 #define UVIOT_EVENT_STOP 0x0002
 
 enum {
-    UVIOT_MODULE_START,
+    UVIOT_MODULE_START = 1,
     UVIOT_MODULE_STOP,
 };
 

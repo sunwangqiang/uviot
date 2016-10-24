@@ -13,10 +13,8 @@ typedef struct uviot_msg
     char *dst;
     char *src;
     
-    /* event */
+    /* business event */
     u32 id; 
-
-    /* business */
     json_t *req;
     json_t *rsp;
 

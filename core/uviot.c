@@ -1,7 +1,6 @@
 #include <uviot.h>
 #include <uv.h>
 
-extern int uviot_init(void);
 static uv_pipe_t uviot_pipe;
 json_t *uviot_cfg;
 

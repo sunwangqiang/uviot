@@ -80,7 +80,7 @@ void uviot_module_xmit_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
 {
 
     msg->src = mod->name;
-    return uviot_xmit_msg(msg);
+    uviot_xmit_msg(msg);
 }
 
 UVIOT_MODULE *uviot_lookup_module(char *name)

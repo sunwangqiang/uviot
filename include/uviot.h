@@ -22,6 +22,7 @@
 #include <uviot_module.h>
 #include <uviot_event.h>
 #include <uviot_obj.h>
+#include <uviot_conn.h>
 
 #define UVIOT_DEBUG 1
 #define UVIOT_PIPENAME "/tmp/uviot-unix-sock"
