@@ -30,20 +30,22 @@ void uviot_pipe_recv_data(uv_stream_t *stream, ssize_t nread, const uv_buf_t *bu
     }
 }
 
-static int uviot_load_default_cfg()
+json_t *uviot_load_default_cfg()
 {
     int ret;
+    json_t *cfg;
     
-    uviot_cfg = json_object();
-    if(!uviot_cfg){
-        return -1;
+    cfg = json_object();
+    if(!cfg){
+        return NULL;
     }
     
-    ret = json_object_set(uviot_cfg, "address", json_string("ipc://"UVIOT_PIPENAME));
+    ret = json_object_set(cfg, "address", json_string("ipc://"UVIOT_PIPENAME));
     if(ret){
-        return -1;
+        json_decref(cfg);
+        return NULL;
     }
-    return 0;
+    return cfg;
 }
 
 static int uviot_load_cfg(int argc, char *argv[])
@@ -51,22 +53,27 @@ static int uviot_load_cfg(int argc, char *argv[])
     json_error_t error;
     
     if(argc < 2){
-        uviot_load_default_cfg();
+        uviot_cfg = uviot_load_default_cfg();
     }else{
         uviot_cfg = json_load_file(argv[1], 0, &error);
-        if(!uviot_cfg){
-            uviot_log(UVIOT_LOG_ERR, "%s\n", error.text);
-            return -1;
-        }
     }
+    if(!uviot_cfg){
+        uviot_log(UVIOT_LOG_ERR, "%s\n", error.text);
+        return -1;
+    }    
     uviot_log(UVIOT_LOG_INFO, "uviot working on %s\n", 
               json_string_value(json_object_get(uviot_cfg, "address")));
     return 0;
 }
 
-int uviot_init(void)
+int uviot_init(int argc, char *argv[])
 {
     int result;
+
+    result = uviot_load_cfg(argc, argv);
+    if(result){
+        return result;
+    }
     
     result = uviot_section_init();
     if(result){
@@ -84,8 +91,7 @@ int uviot_init(void)
 
 int main(int argc, char *argv[])
 {
-    uviot_load_cfg(argc, argv);
-    uviot_init();
+    uviot_init(argc, argv);
 
 #if 1
 	unlink(UVIOT_PIPENAME);
