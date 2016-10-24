@@ -9,6 +9,7 @@ subdir_m +=
 
 obj_y += uviot_module_test.o
 
+obj_y += uviot_module_test2.o
 
 include $(TOP_DIR)/MakeRule
 

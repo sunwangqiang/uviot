@@ -1,6 +1,6 @@
 #include <uviot.h>
 
-UVIOT_OBJ_OPS test_obj_ops = {
+static UVIOT_OBJ_OPS test_obj_ops = {
 	
 };
 
@@ -24,7 +24,7 @@ static UVIOT_EVENT test_ev[] =
     {.id = UVIOT_MODULE_START, .handler = test_mod_start},
 };
 
-int uviot_module_test_init()
+static int uviot_module_test_init()
 {
 	uviot_register_module(&test_mod, test_ev, ARRAY_SIZE(test_ev));
 	uviot_register_obj_ops("Test.Obj.Ops", &test_obj_ops);
