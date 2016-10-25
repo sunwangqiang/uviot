@@ -4,19 +4,11 @@
 
 static struct hlist_head *mod_head;
 
-int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
+int uviot_module_attach_event(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
 {
 	u32 hash;
 	u32 i;
-	
-	if((!mod) || (!ev)){
-		uviot_log(UVIOT_LOG_ERR, "arg error, mod = %p, ev = %p\n", mod, ev);
-		return -EINVAL;
-	}
-	
-	for(i = 0; i< UVIOT_EVENT_SLOT_SIZE; i++){
-		INIT_HLIST_HEAD(&mod->ev_head[i]);
-	}
+    
 	/*
 	 * event hash
 	 */
@@ -32,7 +24,24 @@ int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
 	hash = hash & (UVIOT_MOD_SLOT_SIZE-1);
 	
 	hlist_add_head(&mod->hlist, &mod_head[hash]);
+    
+    return 0;
+}
+
+int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
+{
+	int i;
+    
+	if((!mod) || (!ev)){
+		uviot_log(UVIOT_LOG_ERR, "arg error, mod = %p, ev = %p\n", mod, ev);
+		return -EINVAL;
+	}
 	
+	for(i = 0; i< UVIOT_EVENT_SLOT_SIZE; i++){
+		INIT_HLIST_HEAD(&mod->ev_head[i]);
+	}
+
+	uviot_module_attach_event(mod, ev, size);
 	return 0;
 }
 
@@ -76,11 +85,11 @@ void uviot_module_recv_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
     return;
 }
 
-void uviot_module_xmit_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+void uviot_module_send_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
 {
 
     msg->src = mod->name;
-    uviot_xmit_msg(msg);
+    uviot_send_msg(msg);
 }
 
 UVIOT_MODULE *uviot_lookup_module(char *name)
@@ -144,7 +153,7 @@ int uviot_module_start(void)
     msg.dst = UVIOT_BROADCAST_DST;
     msg.callback = uviot_module_start_callback;
     
-    uviot_xmit_msg(&msg);
+    uviot_send_msg(&msg);
     
     return 0;
 }

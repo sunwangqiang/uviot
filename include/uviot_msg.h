@@ -23,6 +23,6 @@ typedef struct uviot_msg
     void *priv;
 }UVIOT_MSG;
 
-int uviot_xmit_msg(UVIOT_MSG *msg);
+int uviot_send_msg(UVIOT_MSG *msg);
 
 #endif

@@ -1,6 +1,6 @@
 #include <uviot.h>
 
-static UVIOT_OBJ_OPS test2_obj_ops = {
+static UVIOT_NODE test2_node = {
 	
 };
 
@@ -18,7 +18,7 @@ static s32 test2_mod_start(struct uviot_event *ev, UVIOT_MSG *msg)
     msg2.id = 0xdeadbeef;
     msg2.dst = "test_mod";
     
-    uviot_xmit_msg(&msg2);
+    uviot_send_msg(&msg2);
     
 	return 0;
 }
@@ -36,7 +36,7 @@ static UVIOT_EVENT test2_ev[] =
 static int uviot_module_test_init()
 {
 	uviot_register_module(&test2_mod, test2_ev, ARRAY_SIZE(test2_ev));
-	uviot_register_obj_ops("Test2.Obj.Ops", &test2_obj_ops);
+	uviot_register_node(&test2_node, 1);
 	
 	return 0;
 }

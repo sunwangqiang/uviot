@@ -3,17 +3,19 @@
 
 #include <jansson.h>
 
-typedef struct uviot_obj_ops
+typedef struct uviot_node
 {
-	int (*open)(struct uviot_obj_ops *ops, char *obj_name, int flags);
-	int (*read)(struct uviot_obj_ops *ops, char *obj_name, char *buff, int size);
-	int (*write)(struct uviot_obj_ops *ops, char *obj_name, char *buff, int size);
-	int (*remove)(struct uviot_obj_ops *ops, char *obj_name);
+    char *name;
+	int (*open)(struct uviot_node *node, char *obj_name, int flags);
+	int (*read)(struct uviot_node *node, char *obj_name, json_t *obj);
+	int (*write)(struct uviot_node *node, char *obj_name, json_t *obj);
+    int (*list)(struct uviot_node *node, char *obj_name, json_t *obj);
+	int (*remove)(struct uviot_node *node, char *obj_name);
 	json_t *uviot_obj;
 	void *priv;
-}UVIOT_OBJ_OPS;
+}UVIOT_NODE;
 
-int uviot_register_obj_ops(char *name, UVIOT_OBJ_OPS *ops);
-int uviot_unregister_obj_ops(char *name);
+int uviot_register_node(UVIOT_NODE *n, u32 size);
+int uviot_unregister_node(char *name);
 
 #endif

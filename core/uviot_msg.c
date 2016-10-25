@@ -10,21 +10,21 @@ int uviot_msg_broadcast_cb(UVIOT_MODULE *mod, void *arg)
     return UVIOT_LIST_MODULE_CONTINUE;
 }
 
-void uviot_msg_recv_local_msg(UVIOT_MSG *msg)
+int uviot_msg_recv_local_msg(UVIOT_MSG *msg)
 {
     UVIOT_MODULE *mod;
     
     mod = uviot_lookup_module(msg->dst);
     if(mod){
         uviot_module_recv_msg(mod, msg);
-        return;
+        return 1;
     }
 
     if(!strcmp(msg->dst, UVIOT_BROADCAST_DST)){
         uviot_list_each_module(uviot_msg_broadcast_cb, msg);
-        return;
+        return 1;
     }
-    
+    return 0;
 }
 
 int uviot_process_remote_msg(UVIOT_MSG *msg)
@@ -32,22 +32,24 @@ int uviot_process_remote_msg(UVIOT_MSG *msg)
     return 0;
 }
 
-int uviot_xmit_msg(UVIOT_MSG *msg)
+int uviot_send_msg(UVIOT_MSG *msg)
 {
+    int done;
+    
     if(!msg->dst){
         return -1;
     }
-    if(!msg->remote){
-       uviot_msg_recv_local_msg(msg);
+    /*
+     * lookup local modules
+     */
+    done = uviot_msg_recv_local_msg(msg);
+    if(done){
        return 0;
     }
     
     /*
-     * msg to remote process or host
+     * lookup remote modules
      */
-    if(msg->remote && (!msg->local)){
-        return -1;
-    }
     uviot_conn_send(msg);
     
     return 0;

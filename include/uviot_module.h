@@ -15,6 +15,7 @@
 
 typedef struct uviot_module{
     char name[UVIOT_MODULE_NAME_SIZE];
+    char *address; // process local address, unix or inet sock
 	struct hlist_node hlist;
 	struct hlist_head ev_head[UVIOT_EVENT_SLOT_SIZE];
 }UVIOT_MODULE;
