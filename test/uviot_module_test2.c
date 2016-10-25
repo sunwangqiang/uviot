@@ -35,6 +35,9 @@ static s32 test2_mod_start(struct uviot_event *ev, UVIOT_MSG *msg)
     
     uviot_send_msg(&msg2);
     
+    uviot_node_read("Test1.Node", NULL, NULL);
+    uviot_node_write("Test2.Node", NULL, NULL);
+    
 	return 0;
 }
 

@@ -154,7 +154,7 @@ int uviot_register_node(UVIOT_NODE *node, u32 size)
 	if(!node || !node->name){
 		return -EINVAL;
 	}
-	return json_object_set(uviot_node_table, name, json_integer((json_int_t)node));
+	return json_object_set(uviot_node_table, node->name, json_integer((json_int_t)node));
 }
 
 int uviot_unregister_node(char *name)
