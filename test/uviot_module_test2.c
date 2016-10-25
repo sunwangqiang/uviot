@@ -1,8 +1,23 @@
 #include <uviot.h>
 
+static int test2_node_read(struct uviot_node *node, char *obj_name, json_t *obj)
+{
+    uviot_log(UVIOT_LOG_DEBUG, "run\n");
+    return 0;
+}
+
+static int test2_node_write(struct uviot_node *node, char *obj_name, json_t *obj)
+{
+    uviot_log(UVIOT_LOG_DEBUG, "run\n");
+    return 0;
+}
+
 static UVIOT_NODE test2_node = {
-	
+	.name = "Test2.Node",
+    .read = test2_node_read,
+    .write = test2_node_write,
 };
+
 
 static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_MSG *msg)
 {
