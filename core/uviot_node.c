@@ -2,10 +2,120 @@
 
 static json_t *uviot_node_table;
 
+int uviot_node_create(char *node_name, char *obj_name, int flags)
+{
+    UVIOT_NODE *node;
+    
+    /*
+     * local node?
+     */
+    node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
+    if(node){
+        if(node->create){
+            return node->create(node, obj_name, flags);
+        }else{
+            return -1;
+        }
+    }
+
+    /*
+     * TODO: remote node, send node rpc to broker
+     */
+    return -1;
+}
+
+int uviot_node_read(char *node_name, char *obj_name, json_t *obj)
+{
+    UVIOT_NODE *node;
+    
+    /*
+     * local node?
+     */
+    node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
+    if(node){
+        if(node->read){
+            return node->read(node, obj_name, obj);
+        }else{
+            return -1;
+        }
+    }
+
+    /*
+     * TODO: remote node, send node rpc to broker
+     */
+    return -1;
+}
+
+int uviot_node_write(char *node_name, char *obj_name, json_t *obj)
+{
+    UVIOT_NODE *node;
+    
+    /*
+     * local node?
+     */
+    node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
+    if(node){
+        if(node->write){
+            return node->write(node, obj_name, obj);
+        }else{
+            return -1;
+        }
+    }
+
+    /*
+     * TODO: remote node, send node rpc to broker
+     */
+    return -1;
+}
+
+int uviot_node_list(char *node_name, json_t *obj)
+{
+    UVIOT_NODE *node;
+    
+    /*
+     * local node?
+     */
+    node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
+    if(node){
+        if(node->list){
+            return node->list(node, obj);
+        }else{
+            return -1;
+        }
+    }
+
+    /*
+     * TODO: remote node, send node rpc to broker
+     */
+    return -1;
+}
+
+int uviot_node_remove(char *node_name, char *obj_name)
+{
+    UVIOT_NODE *node;
+    
+    /*
+     * local node?
+     */
+    node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
+    if(node){
+        if(node->remove){
+            return node->remove(node, obj_name);
+        }else{
+            return -1;
+        }
+    }
+
+    /*
+     * TODO: remote node, send node rpc to broker
+     */
+    return -1;
+}
+
 static s32 uviot_node_start(struct uviot_event *ev, UVIOT_MSG *msg)
 {
     /*
-     * TODO: public and discover node tree
+     * TODO: publish and discover node tree
      */
     
 	return 0;
