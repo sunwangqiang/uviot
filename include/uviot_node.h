@@ -1,5 +1,5 @@
-#ifndef __UVIOT_OBJ_H
-#define __UVIOT_OBJ_H
+#ifndef __UVIOT_NODE_H
+#define __UVIOT_NODE_H
 
 #include <jansson.h>
 

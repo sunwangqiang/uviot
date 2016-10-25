@@ -21,7 +21,7 @@
 #include <uviot_msg.h>
 #include <uviot_module.h>
 #include <uviot_event.h>
-#include <uviot_obj.h>
+#include <uviot_node.h>
 #include <uviot_conn.h>
 
 #define UVIOT_DEBUG 1
