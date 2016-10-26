@@ -14,10 +14,12 @@
 #define UVIOT_BROADCAST_DST "ffff.ffff.ffff"
 
 typedef struct uviot_module{
-    char name[UVIOT_MODULE_NAME_SIZE];
-    char *address; // process local address, unix or inet sock
+    char *name;
+    char *ext_address; // application address, unix or inet sock address
+    uv_loop_t *loop;
 	struct hlist_node hlist;
 	struct hlist_head ev_head[UVIOT_EVENT_SLOT_SIZE];
+    void *priv;
 }UVIOT_MODULE;
 
 

@@ -42,6 +42,12 @@ int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size)
 	}
 
 	uviot_module_attach_event(mod, ev, size);
+
+    /*
+     * module has self address
+     */
+    if(mod->ext_address){
+    }
 	return 0;
 }
 
