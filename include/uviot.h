@@ -18,7 +18,7 @@
 #include <uviot_log.h>
 #include <uviot_list.h>
 #include <uviot_type.h>
-#include <uviot_msg.h>
+#include <uviot_req.h>
 #include <uviot_module.h>
 #include <uviot_event.h>
 #include <uviot_node.h>

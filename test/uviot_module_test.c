@@ -18,12 +18,12 @@ static UVIOT_NODE test_node = {
     .write = test_node_write,
 };
 
-static s32 test_ev_handler(struct uviot_event *ev, UVIOT_MSG *msg)
+static s32 test_ev_handler(struct uviot_event *ev, UVIOT_REQ *req)
 {
 	return 0;
 }
 
-static s32 test_mod_start(struct uviot_event *ev, UVIOT_MSG *msg)
+static s32 test_mod_start(struct uviot_event *ev, UVIOT_REQ *req)
 {
 	return 0;
 }

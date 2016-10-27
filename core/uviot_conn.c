@@ -2,7 +2,7 @@
 
 
 
-int uviot_conn_send(UVIOT_MSG *msg)
+int uviot_conn_send(UVIOT_REQ *req)
 {
     return 0;
 }

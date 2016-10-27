@@ -44,7 +44,7 @@ enum uviot_event_hook_priorities
 typedef struct uviot_event
 {
     u32  id;
-    s32 (*handler)(struct uviot_event *, UVIOT_MSG *);
+    s32 (*handler)(struct uviot_event *, UVIOT_REQ *);
     struct uviot_event *next;
     s32 priority;
     void *priv;
@@ -89,11 +89,11 @@ int uviot_event_register(struct hlist_head *head, UVIOT_EVENT *ev);
 int uviot_event_unregister(struct hlist_head *head, UVIOT_EVENT *ev);
 int uviot_event_show(struct hlist_head *head);
 
-int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_MSG *msg);
+int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_REQ *req);
 
 UVIOT_MODULE *uviot_lookup_module(char *name);
 
-void uviot_module_recv_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg);
+void uviot_module_recv_req(UVIOT_MODULE *mod, UVIOT_REQ *req);
 
 int uviot_register_module(UVIOT_MODULE *mod, UVIOT_EVENT *ev, u32 size);
 int uviot_unregister_module(UVIOT_MODULE *mod);

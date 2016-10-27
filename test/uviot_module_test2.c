@@ -19,21 +19,21 @@ static UVIOT_NODE test2_node = {
 };
 
 
-static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_MSG *msg)
+static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_REQ *req)
 {
 	return 0;
 }
 
-static s32 test2_mod_start(struct uviot_event *ev, UVIOT_MSG *msg)
+static s32 test2_mod_start(struct uviot_event *ev, UVIOT_REQ *req)
 {
-    UVIOT_MSG msg2;
+    UVIOT_REQ req2;
     
-    memset(&msg2, 0, sizeof(UVIOT_MSG));
+    memset(&req2, 0, sizeof(UVIOT_REQ));
     
-    msg2.id = 0xdeadbeef;
-    msg2.dst = "test_mod";
+    req2.id = 0xdeadbeef;
+    req2.dst = "test_mod";
     
-    uviot_send_msg(&msg2);
+    uviot_send_req(&req2);
     
     uviot_node_read("Test1.Node", NULL, NULL);
     uviot_node_write("Test2.Node", NULL, NULL);

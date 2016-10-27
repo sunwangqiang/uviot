@@ -5,6 +5,6 @@ typedef struct uviot_conn
 {
 }UVIOT_CONN;
 
-int uviot_conn_send(UVIOT_MSG *msg);
+int uviot_conn_send(UVIOT_REQ *msg);
 
 #endif

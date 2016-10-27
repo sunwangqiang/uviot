@@ -3,7 +3,7 @@
 
 #include <jansson.h>
 
-typedef struct uviot_msg
+typedef struct uviot_req
 {
     /* connect */
     char *remote;
@@ -19,10 +19,10 @@ typedef struct uviot_msg
     json_t *rsp;
 
     /* context */
-    int (*callback)(struct uviot_msg *);
+    int (*callback)(struct uviot_req *);
     void *priv;
-}UVIOT_MSG;
+}UVIOT_REQ;
 
-int uviot_send_msg(UVIOT_MSG *msg);
+int uviot_send_req(UVIOT_REQ *req);
 
 #endif

@@ -112,7 +112,7 @@ int uviot_node_remove(char *node_name, char *obj_name)
     return -1;
 }
 
-static s32 uviot_node_start(struct uviot_event *ev, UVIOT_MSG *msg)
+static s32 uviot_node_start(struct uviot_event *ev, UVIOT_REQ *req)
 {
     /*
      * TODO: publish and discover node tree

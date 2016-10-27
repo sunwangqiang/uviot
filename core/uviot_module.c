@@ -76,26 +76,26 @@ static int uviot_module_init(void)
 	return 0;
 }
 
-void uviot_module_recv_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+void uviot_module_recv_req(UVIOT_MODULE *mod, UVIOT_REQ *req)
 {
     u32 hash;
     
-    hash = u32_hash(msg->id) & (UVIOT_EVENT_SLOT_SIZE -1);
+    hash = u32_hash(req->id) & (UVIOT_EVENT_SLOT_SIZE -1);
     
-    uviot_event_call(mod, &mod->ev_head[hash], msg);
+    uviot_event_call(mod, &mod->ev_head[hash], req);
     
-    if(msg->callback){
-        msg->callback(msg);
+    if(req->callback){
+        req->callback(req);
     }
     
     return;
 }
 
-void uviot_module_send_msg(UVIOT_MODULE *mod, UVIOT_MSG *msg)
+void uviot_module_send_req(UVIOT_MODULE *mod, UVIOT_REQ *req)
 {
 
-    msg->src = mod->name;
-    uviot_send_msg(msg);
+    req->src = mod->name;
+    uviot_send_req(req);
 }
 
 UVIOT_MODULE *uviot_lookup_module(char *name)
@@ -140,9 +140,9 @@ void uviot_list_each_module(int (*cb)(UVIOT_MODULE *, void *), void *arg)
     return;
 }
 
-int uviot_module_start_callback(struct uviot_msg *msg)
+int uviot_module_start_callback(UVIOT_REQ *req)
 {
-    printf("UVIOT_MODULE_START msg callback\n");
+    printf("UVIOT_MODULE_START req callback\n");
     return 0;
 }
 
@@ -151,15 +151,15 @@ int uviot_module_start_callback(struct uviot_msg *msg)
  */
 int uviot_module_start(void)
 {
-    UVIOT_MSG msg;
+    UVIOT_REQ req;
     
-    memset(&msg, 0, sizeof(UVIOT_MSG));
+    memset(&req, 0, sizeof(UVIOT_REQ));
     
-    msg.id = UVIOT_MODULE_START;
-    msg.dst = UVIOT_BROADCAST_DST;
-    msg.callback = uviot_module_start_callback;
+    req.id = UVIOT_MODULE_START;
+    req.dst = UVIOT_BROADCAST_DST;
+    req.callback = uviot_module_start_callback;
     
-    uviot_send_msg(&msg);
+    uviot_send_req(&req);
     
     return 0;
 }
@@ -201,17 +201,17 @@ LATE_INIT(uviot_debug);
 
 
 
-static int __uviot_event_call(UVIOT_MODULE *mod, UVIOT_EVENT **head, UVIOT_MSG *msg)
+static int __uviot_event_call(UVIOT_MODULE *mod, UVIOT_EVENT **head, UVIOT_REQ *req)
 {
     UVIOT_EVENT *ev;
     int  ret = UVIOT_EVENT_CONTINUE;
 
     ev = *head;
     while (ev){
-        uviot_log(UVIOT_LOG_DEBUG, "module[%s] process msg {dst:%s, src:%s, id:%08x, req:%p, res:%p}\n",
-                  mod->name, msg->dst, msg->src, msg->id, msg->req, msg->rsp);
+        uviot_log(UVIOT_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, id:%08x, req:%p, res:%p}\n",
+                  mod->name, req->dst, req->src, req->id, req->req, req->rsp);
         
-        ret = ev->handler(ev, msg);
+        ret = ev->handler(ev, req);
         if (ret == UVIOT_EVENT_STOP){
             break;
         }
@@ -220,17 +220,17 @@ static int __uviot_event_call(UVIOT_MODULE *mod, UVIOT_EVENT **head, UVIOT_MSG *
     return ret;
 }
 
-int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_MSG *msg)
+int uviot_event_call(UVIOT_MODULE *mod, struct hlist_head *head, UVIOT_REQ *req)
 {
     struct hlist_node *p, *n;
     UVIOT_EVENT_LIST *el;
 
     hlist_for_each_safe(p, n, head){
         el = (UVIOT_EVENT_LIST *)hlist_entry(p, UVIOT_EVENT_LIST, hlist);
-        if (el->head->id != msg->id){
+        if (el->head->id != req->id){
             continue ;
         }
-        return __uviot_event_call(mod, &el->head, msg);
+        return __uviot_event_call(mod, &el->head, req);
     }
     return -EINVAL;
 }
