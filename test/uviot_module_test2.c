@@ -26,17 +26,18 @@ static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_REQ *req)
 
 static s32 test2_mod_start(struct uviot_event *ev, UVIOT_REQ *req)
 {
-    UVIOT_REQ req2;
+    UVIOT_REQ req2, req3;
     
     memset(&req2, 0, sizeof(UVIOT_REQ));
+    memset(&req3, 0, sizeof(UVIOT_REQ));
     
     req2.id = 0xdeadbeef;
     req2.dst = "test_mod";
     
     uviot_send_req(&req2);
     
-    uviot_node_read("Test1.Node", NULL, NULL);
-    uviot_node_write("Test2.Node", NULL, NULL);
+    uviot_node_read("Test1.Node", NULL, &req3);
+    uviot_node_write("Test2.Node", NULL, &req3);
     
 	return 0;
 }

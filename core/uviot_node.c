@@ -2,7 +2,15 @@
 
 static json_t *uviot_node_table;
 
-int uviot_node_create(char *node_name, char *obj_name, int flags)
+/*
+ * uviot_node_xxx are shortcut functions
+ * the original path is:
+ * .prepare req args, set req->node_name, req->obj_name
+ * .send req to uviot node modules
+ * .uviot node modules process create/read/write/list... events
+ * .uviot node modules ack the request
+ */
+int uviot_node_create(char *node_name, char *obj_name, UVIOT_REQ *req)
 {
     UVIOT_NODE *node;
     
@@ -12,7 +20,7 @@ int uviot_node_create(char *node_name, char *obj_name, int flags)
     node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
     if(node){
         if(node->create){
-            return node->create(node, obj_name, flags);
+            return node->create(node, obj_name, req);
         }else{
             return -1;
         }
@@ -24,7 +32,7 @@ int uviot_node_create(char *node_name, char *obj_name, int flags)
     return -1;
 }
 
-int uviot_node_read(char *node_name, char *obj_name, json_t *obj)
+int uviot_node_read(char *node_name, char *obj_name, UVIOT_REQ *req)
 {
     UVIOT_NODE *node;
     
@@ -34,7 +42,7 @@ int uviot_node_read(char *node_name, char *obj_name, json_t *obj)
     node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
     if(node){
         if(node->read){
-            return node->read(node, obj_name, obj);
+            return node->read(node, obj_name, req);
         }else{
             return -1;
         }
@@ -46,7 +54,7 @@ int uviot_node_read(char *node_name, char *obj_name, json_t *obj)
     return -1;
 }
 
-int uviot_node_write(char *node_name, char *obj_name, json_t *obj)
+int uviot_node_write(char *node_name, char *obj_name, UVIOT_REQ *req)
 {
     UVIOT_NODE *node;
     
@@ -56,7 +64,7 @@ int uviot_node_write(char *node_name, char *obj_name, json_t *obj)
     node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
     if(node){
         if(node->write){
-            return node->write(node, obj_name, obj);
+            return node->write(node, obj_name, req);
         }else{
             return -1;
         }
@@ -68,7 +76,7 @@ int uviot_node_write(char *node_name, char *obj_name, json_t *obj)
     return -1;
 }
 
-int uviot_node_list(char *node_name, json_t *obj)
+int uviot_node_list(char *node_name, char *obj_name, UVIOT_REQ *req)
 {
     UVIOT_NODE *node;
     
@@ -78,7 +86,7 @@ int uviot_node_list(char *node_name, json_t *obj)
     node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
     if(node){
         if(node->list){
-            return node->list(node, obj);
+            return node->list(node, obj_name, req);
         }else{
             return -1;
         }
@@ -90,7 +98,7 @@ int uviot_node_list(char *node_name, json_t *obj)
     return -1;
 }
 
-int uviot_node_remove(char *node_name, char *obj_name)
+int uviot_node_remove(char *node_name, char *obj_name, UVIOT_REQ *req)
 {
     UVIOT_NODE *node;
     
@@ -100,7 +108,7 @@ int uviot_node_remove(char *node_name, char *obj_name)
     node = (UVIOT_NODE *)(json_integer_value(json_object_get(uviot_node_table, node_name)));
     if(node){
         if(node->remove){
-            return node->remove(node, obj_name);
+            return node->remove(node, obj_name, req);
         }else{
             return -1;
         }

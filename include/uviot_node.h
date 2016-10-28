@@ -2,15 +2,16 @@
 #define __UVIOT_NODE_H
 
 #include <jansson.h>
+#include <uviot_req.h>
 
 typedef struct uviot_node
 {
     char *name;
-	int (*create)(struct uviot_node *node, char *obj_name, int flags);
-	int (*read)(struct uviot_node *node, char *obj_name, json_t *obj);
-	int (*write)(struct uviot_node *node, char *obj_name, json_t *obj);
-    int (*list)(struct uviot_node *node, json_t *obj);
-	int (*remove)(struct uviot_node *node, char *obj_name);
+	int (*create)(struct uviot_node *node, char *obj_name, UVIOT_REQ *req);
+	int (*read)(struct uviot_node *node, char *obj_name, UVIOT_REQ *req);
+	int (*write)(struct uviot_node *node, char *obj_name, UVIOT_REQ *req);
+    int (*list)(struct uviot_node *node, char *obj_name, UVIOT_REQ *req);
+	int (*remove)(struct uviot_node *node, char *obj_name, UVIOT_REQ *req);
 	json_t *uviot_obj;
 	void *priv;
 }UVIOT_NODE;

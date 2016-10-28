@@ -83,11 +83,7 @@ void uviot_module_recv_req(UVIOT_MODULE *mod, UVIOT_REQ *req)
     hash = u32_hash(req->id) & (UVIOT_EVENT_SLOT_SIZE -1);
     
     uviot_event_call(mod, &mod->ev_head[hash], req);
-    
-    if(req->callback){
-        req->callback(req);
-    }
-    
+        
     return;
 }
 
