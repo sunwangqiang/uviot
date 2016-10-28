@@ -5,6 +5,7 @@
 
 typedef struct uviot_req
 {
+    struct list_head list;
     /* connect */
     char *remote;
     char *local;
@@ -24,5 +25,7 @@ typedef struct uviot_req
 }UVIOT_REQ;
 
 int uviot_send_req(UVIOT_REQ *req);
+UVIOT_REQ *uviot_alloc_req(void);
+void uviot_free_req(UVIOT_REQ *);
 
 #endif

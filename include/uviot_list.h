@@ -51,6 +51,15 @@ static inline void __list_add(struct list_head * newitem,
     prev->next = newitem;
 }
 
+/**
+ * list_empty - tests whether a list is empty
+ * @head: the list to test.
+ */
+static inline int list_empty(const struct list_head *head)
+{
+	return head->next == head;
+}
+
 static inline void list_add(struct list_head *newitem, struct list_head *head)
 {
     __list_add(newitem, head, head->next);
