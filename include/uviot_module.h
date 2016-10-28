@@ -5,6 +5,8 @@
 #ifndef __UVIOT_MODULE_H
 #define __UVIOT_MODULE_H
 
+#include <uv.h>
+
 #define UVIOT_MODULE_NAME_SIZE 16
 #define UVIOT_EVENT_SLOT_SIZE 8
 

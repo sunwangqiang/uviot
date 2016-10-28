@@ -10,7 +10,7 @@ obj_y += uviot_log.o
 obj_y += uviot_section.o
 obj_y += uviot_module.o
 obj_y += uviot_node.o
-obj_y += uviot_msg.o
+obj_y += uviot_req.o
 obj_y += uviot_conn.o
 
 include $(TOP_DIR)/MakeRule

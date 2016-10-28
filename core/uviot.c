@@ -29,7 +29,7 @@ void uviot_pipe_recv_data(uv_stream_t *stream, ssize_t nread, const uv_buf_t *bu
     }
 }
 
-json_t *uviot_load_default_cfg()
+json_t *uviot_load_default_cfg(void)
 {
     int ret;
     json_t *cfg;

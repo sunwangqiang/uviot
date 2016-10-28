@@ -139,7 +139,7 @@ static UVIOT_EVENT uviot_node_event[] =
     {.id = UVIOT_MODULE_START, .handler = uviot_node_start},
 };
 
-static int uviot_node_init()
+static int uviot_node_init(void)
 {
 	uviot_register_module(&uviot_node_module, uviot_node_event, 
                           ARRAY_SIZE(uviot_node_event));
