@@ -3,6 +3,7 @@
 
 static uv_pipe_t uviot_pipe;
 json_t *uviot_cfg;
+static UV_TASK init_task;
 
 void uviot_pipe_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     *buf = uv_buf_init((char*) malloc(suggested_size), suggested_size);
@@ -88,20 +89,59 @@ int uviot_init(int argc, char *argv[])
     return 0;
 }
 
+static void main_loop(void *arg)
+{
+    int ret;
+
+    unlink(UVIOT_PIPENAME);
+    uv_pipe_init(uv_default_loop(), &uviot_pipe, 1);
+    ret = uv_pipe_bind(&uviot_pipe, UVIOT_PIPENAME);
+    if(ret){
+        uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
+        uv_exit_task(current);
+    }
+	
+    ret = uv_read_start((uv_stream_t*)&uviot_pipe, uviot_pipe_buffer, uviot_pipe_recv_data);
+    if(ret){
+        uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
+        uv_exit_task(current);
+    }	
+    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+
+    while(1){
+        uviot_log(UVIOT_LOG_INFO, "run.....\n");
+        uv_yield_task(current);
+        schedule();
+    }
+}
+
+static void idle_loop(void *arg)
+{
+    while(1){
+        uviot_log(UVIOT_LOG_INFO, "run.....\n");
+        uv_yield_task(current);
+        schedule();
+    }    
+}
+
 int main(int argc, char *argv[])
 {
     uviot_init(argc, argv);
 
-#if 1
-	unlink(UVIOT_PIPENAME);
-	uv_pipe_init(uv_default_loop(), &uviot_pipe, 1);
-	uv_pipe_bind(&uviot_pipe, UVIOT_PIPENAME);
-	
-    printf("hello world\n");
-    uv_read_start((uv_stream_t*)&uviot_pipe, uviot_pipe_buffer, uviot_pipe_recv_data);
-	
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-#endif	
-	return 0;
+    UV_TASK *idle;
+    
+    idle = uv_create_task("mainloop", main_loop, (void *)1, 32*1024);
+    uv_wakeup_task(idle);
+
+    idle = uv_create_task("idle2", idle_loop, (void *)2, 32*1024);
+    uv_wakeup_task(idle);
+
+    idle = uv_create_task("idle3", idle_loop, (void *)3, 32*1024);
+    uv_wakeup_task(idle);
+    
+    current = &init_task;
+    schedule();
+    
+    return 0;
 }
 

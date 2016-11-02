@@ -11,7 +11,7 @@ all:.depend $(subdir_m) $(BUILDIN_OBJ) $(TARGET)
 
 .depend:$(src_y)
 ifneq ($(strip $(src_y)),)
-	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(src_y)  > .depend
+	$(Q)$(CC) -MM $(BUILD_CFLAGS) $(CC_CFLAGS) $(src_y)  > .depend
 endif
 
 prepare_clean:
@@ -28,15 +28,18 @@ $(subdir_y):
 $(subdir_m):
 	$(MAKE)  -C $@ || exit 1 ;
 		
-$(BUILDIN_OBJ):$(obj_y) $(subdir_y_obj)
+$(BUILDIN_OBJ):$(obj_y) $(asm_y) $(subdir_y_obj)
 ifneq ($(strip $(obj_y)$(subdir_y_obj)),)
 	$(LD) -r -o $@ $^
 endif
 
 .c.o:
-	$(Q)$(CC) $(BUILD_CFLAGS) -c $<
+	$(Q)$(CC) $(BUILD_CFLAGS) $(CC_CFLAGS) -c $<
 	@echo "Compile    " $<
 
+%.o: %.S
+	$(AS) $*.S
+	
 clean: prepare_clean $(subdir_y_clean) $(subdir_m_clean)
 	$(RM) -fr $(BUILDIN_OBJ) $(obj_y) $(TARGET)
 

@@ -5,6 +5,7 @@ BUILDIN_OBJ = buildin.o
 LIBUV = libuv-1.9.1
 JANSSON = jansson-2.9
 CURL = curl-7.50.3
+UV_TASK = uv_task-0.1.0
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
 export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL
@@ -23,7 +24,7 @@ export Q MAKE
 # Toolchain and flags cfg
 CROSS_COMPILE = 
 
-AS		= $(CROSS_COMPILE)as
+AS		= $(CROSS_COMPILE)gcc -c
 LD		= $(CROSS_COMPILE)ld
 CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
@@ -52,8 +53,9 @@ BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
 INCLUDE_DIR    := \
 		-I$(TOP_DIR)/include \
 		-I$(TOP_DIR)/lib/$(LIBUV)/include \
-		-I$(TOP_DIR)/lib/$(JANSSON)/src
-
+		-I$(TOP_DIR)/lib/$(JANSSON)/src \
+		-I$(TOP_DIR)/lib/$(UV_TASK)/include
+		
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
 LINK_LIBS +=  \
@@ -75,6 +77,7 @@ subdir_m += lib
 subdir_y += test 
 obj_y +=
 # subdir_y_obj += lib/$(BUILDIN_OBJ)
+subdir_y_obj += lib/$(UV_TASK)/$(BUILDIN_OBJ)
 
 TARGET = uviot
 

@@ -34,6 +34,9 @@ typedef unsigned short u16;
 
 typedef signed int s32;
 typedef unsigned int u32;
+
+typedef unsigned long ulong;
+
 typedef signed long long s64;
 typedef unsigned long long u64;
 
