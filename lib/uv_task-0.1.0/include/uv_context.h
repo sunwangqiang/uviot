@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
@@ -40,7 +41,6 @@
 #endif
 #include <sys/utsname.h>
 #include <inttypes.h>
-#include "task.h"
 
 #if defined(__FreeBSD__) && __FreeBSD__ < 5
 extern	int		getmcontext(mcontext_t*);

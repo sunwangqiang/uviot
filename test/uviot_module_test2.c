@@ -26,7 +26,7 @@ static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_REQ *req)
 
 static int test2_add_callback(struct uviot_req *req)
 {
-    uviot_log(UVIOT_LOG_INFO, "result = %ld\n", 
+    uviot_log(UVIOT_LOG_INFO, "result = %"JSON_INTEGER_FORMAT"\n", 
         json_integer_value(json_object_get(req->req, "result")) );
     return 0;
 }

@@ -8,7 +8,7 @@ CURL = curl-7.50.3
 UV_TASK = uv_task-0.1.0
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
-export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL
+export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL UV_TASK
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.

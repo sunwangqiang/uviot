@@ -1,4 +1,5 @@
 /* Copyright (c) 2005-2006 Russ Cox, MIT; see COPYRIGHT */
+#include <uv_context.h>
 
 #if defined(__APPLE__)
 #if defined(__i386__)
@@ -76,7 +77,7 @@ makecontext(ucontext_t *ucp, void (*func)(void), int argc, ...)
 
 	memset(&ucp->uc_mcontext, 0, sizeof ucp->uc_mcontext);
 	if(argc != 2)
-		*(int*)0 = 0;
+		*(volatile int*)0 = 0;
 	va_start(va, argc);
 	ucp->uc_mcontext.mc_rdi = va_arg(va, int);
 	ucp->uc_mcontext.mc_rsi = va_arg(va, int);
