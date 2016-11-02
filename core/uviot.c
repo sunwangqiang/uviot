@@ -92,35 +92,36 @@ int uviot_init(int argc, char *argv[])
 static void main_loop(void *arg)
 {
     int ret;
-
+    int i = 20;
+    
     unlink(UVIOT_PIPENAME);
     uv_pipe_init(uv_default_loop(), &uviot_pipe, 1);
     ret = uv_pipe_bind(&uviot_pipe, UVIOT_PIPENAME);
     if(ret){
         uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
-        uv_exit_task(current);
+        uv_exit_task();
     }
 	
     ret = uv_read_start((uv_stream_t*)&uviot_pipe, uviot_pipe_buffer, uviot_pipe_recv_data);
     if(ret){
         uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
-        uv_exit_task(current);
+        uv_exit_task();
     }	
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
-    while(1){
+    while(i--){
         uviot_log(UVIOT_LOG_INFO, "run.....\n");
-        uv_yield_task(current);
-        schedule();
+        uv_yield_task();
     }
 }
 
 static void idle_loop(void *arg)
 {
-    while(1){
+    int i = 30;
+    
+    while(i--){
         uviot_log(UVIOT_LOG_INFO, "run.....\n");
-        uv_yield_task(current);
-        schedule();
+        uv_yield_task();
     }    
 }
 
@@ -141,7 +142,7 @@ int main(int argc, char *argv[])
     
     current = &init_task;
     schedule();
-    
+    //never return
     return 0;
 }
 

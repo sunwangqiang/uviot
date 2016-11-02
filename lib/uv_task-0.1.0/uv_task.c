@@ -19,7 +19,7 @@ static void uv_start_task(u32 y, u32 x)
     printf("taskstart %s\n", task->name);
 	task->entry(task->startarg);
     printf("taskexits %s\n", task->name);
-	uv_exit_task(task);
+	uv_exit_task();
     printf("should not reached\n");
 }
 
@@ -73,9 +73,10 @@ void uv_wakeup_task(UV_TASK *task)
     list_add(&task->list, &running_queue);
 }
 
-void uv_yield_task(UV_TASK *task)
+void uv_yield_task(void)
 {
-    list_add_tail(&task->list, &running_queue);
+    list_add_tail(&current->list, &running_queue);
+    schedule();
 }
 
 UV_TASK *uv_dequeue_task(struct list_head *q)
@@ -109,9 +110,11 @@ void uv_free_task(UV_TASK *task)
     free(task);
 }
 
-void uv_exit_task(UV_TASK *task)
+void uv_exit_task(void)
 {
-    task->state = UV_TASK_EXIT;
+    current->state = UV_TASK_EXIT;
+    printf("task %s exit\n", current->name);
+    uv_free_task(current);
     schedule();
 }
 
@@ -137,7 +140,4 @@ void schedule(void)
     prev = current;
     current = next;
     contextswitch(&prev->context, &next->context);
-    if(next->state == UV_TASK_EXIT){
-        uv_free_task(next);
-    }
 }

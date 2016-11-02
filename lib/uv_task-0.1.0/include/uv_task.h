@@ -32,11 +32,11 @@ extern UV_TASK *current;
 
 UV_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size);
 void uv_wakeup_task(UV_TASK *);
-void uv_yield_task(UV_TASK *task);
+void uv_yield_task(void);
 void schedule(void);
 UV_TASK *uv_dequeue_task(struct list_head *q);
 void uv_enqueue_task(struct list_head *, UV_TASK *);
 void uv_free_task(UV_TASK *);
-void uv_exit_task(UV_TASK *task);
+void uv_exit_task(void);
 
 #endif
