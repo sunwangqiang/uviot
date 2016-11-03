@@ -2,9 +2,13 @@
 
 #include <uv_task.h>
 
-static LIST_HEAD(running_queue);
 UV_TASK *current;
 
+static LIST_HEAD(running_queue);
+static UV_TASK init_task = {
+    .state = UV_TASK_RUNNABLE,
+    .name = "init",
+};
 
 static void uv_start_task(u32 y, u32 x)
 {
@@ -17,9 +21,9 @@ static void uv_start_task(u32 y, u32 x)
 	task = (UV_TASK*)z;
 
     printf("taskstart %s\n", task->name);
-	task->entry(task->startarg);
+    task->entry(task->startarg);
     printf("taskexits %s\n", task->name);
-	uv_exit_task();
+    uv_exit_task();
     printf("should not reached\n");
 }
 
@@ -91,6 +95,17 @@ UV_TASK *uv_dequeue_task(struct list_head *q)
     return NULL;
 }
 
+void uv_task_waiton_queue(struct list_head *q)
+{    
+    uv_enqueue_task(q, current);
+    schedule();
+}
+
+void uv_task_wakeup_queue(struct list_head *q)
+{    
+    uv_enqueue_task(q, current);
+}
+
 UV_TASK *uv_dequeue_running_task(void)
 {
     return uv_dequeue_task(&running_queue);
@@ -98,9 +113,6 @@ UV_TASK *uv_dequeue_running_task(void)
 
 void uv_enqueue_task(struct list_head *q, UV_TASK *task)
 {
-    if(task->list.next){
-        list_del(&task->list);
-    }
     list_add(&task->list, q);
 }
 
@@ -113,8 +125,6 @@ void uv_free_task(UV_TASK *task)
 void uv_exit_task(void)
 {
     current->state = UV_TASK_EXIT;
-    printf("task %s exit\n", current->name);
-    uv_free_task(current);
     schedule();
 }
 
@@ -124,6 +134,12 @@ static void contextswitch(Context *from, Context *to)
 		printf("swapcontext failed!\n");
 		assert(0);
 	}
+}
+
+void uv_run_scheduler(void)
+{
+    current = &init_task;
+    schedule();
 }
 
 void schedule(void)
@@ -138,6 +154,12 @@ void schedule(void)
     }
     
     prev = current;
+    if(prev->state == UV_TASK_EXIT){
+        uv_free_task(prev);
+        prev = &init_task;
+    }
     current = next;
+    
     contextswitch(&prev->context, &next->context);
 }
+

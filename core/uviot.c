@@ -3,7 +3,6 @@
 
 static uv_pipe_t uviot_pipe;
 json_t *uviot_cfg;
-static UV_TASK init_task;
 
 void uviot_pipe_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     *buf = uv_buf_init((char*) malloc(suggested_size), suggested_size);
@@ -89,6 +88,10 @@ int uviot_init(int argc, char *argv[])
     return 0;
 }
 
+void my_connection_cb(uv_stream_t* server, int status) {
+
+}
+
 static void main_loop(void *arg)
 {
     int ret;
@@ -101,12 +104,12 @@ static void main_loop(void *arg)
         uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
         uv_exit_task();
     }
-	
-    ret = uv_read_start((uv_stream_t*)&uviot_pipe, uviot_pipe_buffer, uviot_pipe_recv_data);
-    if(ret){
-        uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
-        uv_exit_task();
-    }	
+
+    printf("block on uv_listen\n");
+    
+    uv_listen((uv_stream_t*)&uviot_pipe, 128, NULL);
+    
+    printf("block on uv_run\n");
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
     while(i--){
@@ -140,8 +143,8 @@ int main(int argc, char *argv[])
     idle = uv_create_task("idle3", idle_loop, (void *)3, 32*1024);
     uv_wakeup_task(idle);
     
-    current = &init_task;
-    schedule();
+    uv_run_scheduler();
+    
     //never return
     return 0;
 }
