@@ -39,5 +39,6 @@ void uv_enqueue_task(struct list_head *, UV_TASK *);
 void uv_free_task(UV_TASK *);
 void uv_exit_task(void);
 void uv_run_scheduler(void);
+void uv_task_sleep(u64 ms);
 
 #endif

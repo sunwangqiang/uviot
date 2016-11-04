@@ -1,7 +1,6 @@
 #include <uviot.h>
 #include <uv.h>
 
-static uv_pipe_t uviot_pipe;
 json_t *uviot_cfg;
 
 void uviot_pipe_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
@@ -92,56 +91,39 @@ void my_connection_cb(uv_stream_t* server, int status) {
 
 }
 
-static void main_loop(void *arg)
+static void sleep1_loop(void *arg)
 {
-    int ret;
-    int i = 20;
+    int i = 3;
     
-    unlink(UVIOT_PIPENAME);
-    uv_pipe_init(uv_default_loop(), &uviot_pipe, 1);
-    ret = uv_pipe_bind(&uviot_pipe, UVIOT_PIPENAME);
-    if(ret){
-        uviot_log(UVIOT_LOG_ERR, "uv_pipe_bind error\n");
-        uv_exit_task();
-    }
-
-    printf("block on uv_listen\n");
-    
-    uv_listen((uv_stream_t*)&uviot_pipe, 128, NULL);
-    
-    printf("block on uv_run\n");
-    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-
     while(i--){
-        uviot_log(UVIOT_LOG_INFO, "run.....\n");
-        uv_yield_task();
-    }
+        uviot_log(UVIOT_LOG_INFO, "%s start.....\n", current->name);
+        uv_task_sleep(8000);
+        uviot_log(UVIOT_LOG_INFO, "%s end  .....\n\n", current->name);
+    }    
 }
 
-static void idle_loop(void *arg)
+static void sleep2_loop(void *arg)
 {
-    int i = 30;
+    int i = 3;
     
     while(i--){
-        uviot_log(UVIOT_LOG_INFO, "run.....\n");
-        uv_yield_task();
+        uviot_log(UVIOT_LOG_INFO, "%s start.....\n", current->name);
+        uv_task_sleep(3000);
+        uviot_log(UVIOT_LOG_INFO, "%s end  .....\n\n", current->name);
     }    
 }
 
 int main(int argc, char *argv[])
 {
+    UV_TASK *sleep1, *sleep2;
+
     uviot_init(argc, argv);
-
-    UV_TASK *idle;
     
-    idle = uv_create_task("mainloop", main_loop, (void *)1, 32*1024);
-    uv_wakeup_task(idle);
+    sleep1 = uv_create_task("sleep1", sleep1_loop, NULL, 32*1024);
+    uv_wakeup_task(sleep1);
 
-    idle = uv_create_task("idle2", idle_loop, (void *)2, 32*1024);
-    uv_wakeup_task(idle);
-
-    idle = uv_create_task("idle3", idle_loop, (void *)3, 32*1024);
-    uv_wakeup_task(idle);
+    sleep2 = uv_create_task("sleep2", sleep2_loop, NULL, 32*1024);
+    uv_wakeup_task(sleep2);
     
     uv_run_scheduler();
     

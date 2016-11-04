@@ -1,14 +1,30 @@
 #include <uviot.h>
 
 #include <uv_task.h>
+#include <uv.h>
 
 UV_TASK *current;
 
 static LIST_HEAD(running_queue);
-static UV_TASK init_task = {
-    .state = UV_TASK_RUNNABLE,
-    .name = "init",
-};
+static LIST_HEAD(sleep_queue);
+static UV_TASK init_task;
+static UV_TASK *idle_task;
+
+/*
+ * This is the TRUE block entry
+ */
+static void uv_idle_task(void *arg)
+{
+    uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+}
+
+void uv_run_scheduler(void)
+{
+    idle_task = uv_create_task("idletask", uv_idle_task, NULL, 16*1024);
+    
+    current = &init_task;
+    schedule();
+}
 
 static void uv_start_task(u32 y, u32 x)
 {
@@ -20,11 +36,9 @@ static void uv_start_task(u32 y, u32 x)
 	z |= y;
 	task = (UV_TASK*)z;
 
-    printf("taskstart %s\n", task->name);
     task->entry(task->startarg);
-    printf("taskexits %s\n", task->name);
     uv_exit_task();
-    printf("should not reached\n");
+    printf("all task exit\n");
 }
 
 UV_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
@@ -106,6 +120,30 @@ void uv_task_wakeup_queue(struct list_head *q)
     uv_enqueue_task(q, current);
 }
 
+static void uv_task_sleep_cb(uv_timer_t* timer)
+{
+    UV_TASK *task;
+
+    task = (UV_TASK *)timer->data;
+    list_del(&task->list);//del from sleep_queue
+    
+    uv_wakeup_task(task);
+    schedule();
+}
+
+void uv_task_sleep(u64 ms)
+{
+    uv_timer_t timer;
+
+    timer.data = current;
+    uv_enqueue_task(&sleep_queue, current);
+    
+    uv_timer_init(uv_default_loop(), &timer);
+    uv_timer_start(&timer, uv_task_sleep_cb, ms, 0);
+    
+    schedule();
+}
+
 UV_TASK *uv_dequeue_running_task(void)
 {
     return uv_dequeue_task(&running_queue);
@@ -136,12 +174,6 @@ static void contextswitch(Context *from, Context *to)
 	}
 }
 
-void uv_run_scheduler(void)
-{
-    current = &init_task;
-    schedule();
-}
-
 void schedule(void)
 {
     UV_TASK *next;
@@ -149,17 +181,17 @@ void schedule(void)
     
     next = uv_dequeue_running_task();
     if(!next){
-        printf("no runnable task, exit\n");
-        exit(1);
+        next = idle_task;
     }
     
     prev = current;
     if(prev->state == UV_TASK_EXIT){
         uv_free_task(prev);
-        prev = &init_task;
+        prev = idle_task;
     }
     current = next;
     
     contextswitch(&prev->context, &next->context);
 }
+
 
