@@ -7,8 +7,6 @@
 *.dylib
 uviot
 
-/lib
-uvco/lib
 
 lib/curl-7.50.3/src/.libs/curl
 
