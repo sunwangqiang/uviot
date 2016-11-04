@@ -1,11 +1,11 @@
 
-#include <uviot.h>
+#include <uvco.h>
 
 #if defined(__APPLE__) && defined(__MACH__)
 
 #include <mach-o/getsect.h>
 
-void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
+void uvco_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
 {
     unsigned long size;
 
@@ -15,7 +15,7 @@ void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
 
 #else // for gcc
 
-void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
+void uvco_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
 {
     if(!strcmp(sect, "module_section")){
         *start = &__start_module_section;
@@ -30,7 +30,7 @@ void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
         *start = &__start_base_section;
         *end = &__stop_base_section;
     }else{
-        uviot_log(UVIOT_LOG_ERR, "error!!");
+        uvco_log(UVCO_LOG_ERR, "error!!");
         *start = NULL;
         *end = NULL;
     }
@@ -38,50 +38,50 @@ void uviot_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
 
 #endif
 
-int uviot_section_init(void)
+int uvco_section_init(void)
 {
     int result;
     initcall_t *call, *end;
 
-	uviot_get_sect_addr("base_section", &call, &end);
+	uvco_get_sect_addr("base_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
             if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
+                uvco_log(UVCO_LOG_ERR, "failed %p\n", *call);
                 return result;
             }
         }
     }
 	
-    uviot_get_sect_addr("core_section", &call, &end);
+    uvco_get_sect_addr("core_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
             if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
+                uvco_log(UVCO_LOG_ERR, "failed %p\n", *call);
                 return result;
             }
         }
     }
 
-    uviot_get_sect_addr("module_section", &call, &end);
+    uvco_get_sect_addr("module_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
             if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
+                uvco_log(UVCO_LOG_ERR, "failed %p\n", *call);
                 return result;            
             }        
         }
     }
 
-    uviot_get_sect_addr("late_section", &call, &end);
+    uvco_get_sect_addr("late_section", &call, &end);
     if(call){
         for (; call<end; call++) {
             result = (*call)();
             if(result){
-                uviot_log(UVIOT_LOG_ERR, "failed %p\n", *call);
+                uvco_log(UVCO_LOG_ERR, "failed %p\n", *call);
                 return result;            
             }        
         }

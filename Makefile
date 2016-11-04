@@ -5,10 +5,9 @@ BUILDIN_OBJ = buildin.o
 LIBUV = libuv-1.9.1
 JANSSON = jansson-2.9
 CURL = curl-7.50.3
-UV_TASK = uv_task-0.1.0
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
-export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL UV_TASK
+export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
@@ -52,17 +51,17 @@ BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
 
 INCLUDE_DIR    := \
 		-I$(TOP_DIR)/include \
-		-I$(TOP_DIR)/lib/$(LIBUV)/include \
-		-I$(TOP_DIR)/lib/$(JANSSON)/src \
-		-I$(TOP_DIR)/lib/$(UV_TASK)/include
+		-I$(TOP_DIR)/uvco/lib/$(LIBUV)/include \
+		-I$(TOP_DIR)/uvco/lib/$(JANSSON)/src \
+		-I$(TOP_DIR)/uvco/include
 		
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
 LINK_LIBS +=  \
-             -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
-             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson 
+             -L$(TOP_DIR)/uvco/lib/$(LIBUV)/.libs/ -luv \
+             -L$(TOP_DIR)/uvco/lib/$(JANSSON)/src/.libs/ -ljansson 
 # -w disable MAC OS X PIE warning
-LINK_FLAGS +=  -w -Wl,-rpath,$(TOP_DIR)/lib/$(JANSSON)/src/.libs/
+LINK_FLAGS +=  -w -Wl,-rpath,$(TOP_DIR)/uvco/lib/$(JANSSON)/src/.libs/
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
@@ -71,13 +70,11 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 ## 先通过subdir_m优先进行编译，然后通过subdir_y_obj链接其生成的buildin.o
 # subdir_y += lib
 
-subdir_y += core
-
-subdir_m += lib
+subdir_m += uvco
 subdir_y += test 
 obj_y +=
 # subdir_y_obj += lib/$(BUILDIN_OBJ)
-subdir_y_obj += lib/$(UV_TASK)/$(BUILDIN_OBJ)
+subdir_y_obj += uvco/$(BUILDIN_OBJ)
 
 TARGET = uviot
 

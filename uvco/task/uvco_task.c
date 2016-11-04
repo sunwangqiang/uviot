@@ -1,14 +1,12 @@
-#include <uviot.h>
-
-#include <uv_task.h>
 #include <uv.h>
+#include <uvco.h>
 
-UV_TASK *current;
+UVCO_TASK *current;
 
 static LIST_HEAD(running_queue);
 static LIST_HEAD(sleep_queue);
-static UV_TASK init_task;
-static UV_TASK *idle_task;
+static UVCO_TASK init_task;
+static UVCO_TASK *idle_task;
 
 /*
  * This is the TRUE block entry
@@ -28,31 +26,31 @@ void uv_run_scheduler(void)
 
 static void uv_start_task(u32 y, u32 x)
 {
-	UV_TASK *task;
+	UVCO_TASK *task;
 	ulong z;
 
 	z = x<<16;	/* hide undefined 32-bit shift from 32-bit compilers */
 	z <<= 16;
 	z |= y;
-	task = (UV_TASK*)z;
+	task = (UVCO_TASK*)z;
 
     task->entry(task->startarg);
     uv_exit_task();
     printf("all task exit\n");
 }
 
-UV_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
+UVCO_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
 {
-    UV_TASK *task;
+    UVCO_TASK *task;
     sigset_t zero;
 	u32 x, y;
 	unsigned long z;
     
-    task = (UV_TASK *)malloc(sizeof(UV_TASK) + stack_size);
+    task = (UVCO_TASK *)malloc(sizeof(UVCO_TASK) + stack_size);
     if(!task){
         return NULL;
     }
-    memset(task, 0, sizeof(UV_TASK));
+    memset(task, 0, sizeof(UVCO_TASK));
     task->stack = (char *)(task+1);
     task->stack_size = stack_size;
     task->entry = entry;
@@ -86,7 +84,7 @@ UV_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_s
     return task;
 }
 
-void uv_wakeup_task(UV_TASK *task)
+void uv_wakeup_task(UVCO_TASK *task)
 {
     list_add(&task->list, &running_queue);
 }
@@ -97,14 +95,14 @@ void uv_yield_task(void)
     schedule();
 }
 
-UV_TASK *uv_dequeue_task(struct list_head *q)
+UVCO_TASK *uv_dequeue_task(struct list_head *q)
 {
     struct list_head *element;
     
     if(!list_empty(q)){
         element = q->next;
         list_del(element);
-        return list_entry(element, UV_TASK, list);
+        return list_entry(element, UVCO_TASK, list);
     }
     return NULL;
 }
@@ -122,9 +120,9 @@ void uv_task_wakeup_queue(struct list_head *q)
 
 static void uv_task_sleep_cb(uv_timer_t* timer)
 {
-    UV_TASK *task;
+    UVCO_TASK *task;
 
-    task = (UV_TASK *)timer->data;
+    task = (UVCO_TASK *)timer->data;
     list_del(&task->list);//del from sleep_queue
     
     uv_wakeup_task(task);
@@ -144,17 +142,17 @@ void uv_task_sleep(u64 ms)
     schedule();
 }
 
-UV_TASK *uv_dequeue_running_task(void)
+UVCO_TASK *uv_dequeue_running_task(void)
 {
     return uv_dequeue_task(&running_queue);
 }
 
-void uv_enqueue_task(struct list_head *q, UV_TASK *task)
+void uv_enqueue_task(struct list_head *q, UVCO_TASK *task)
 {
     list_add(&task->list, q);
 }
 
-void uv_free_task(UV_TASK *task)
+void uv_free_task(UVCO_TASK *task)
 {
     free(task->name);
     free(task);
@@ -162,7 +160,7 @@ void uv_free_task(UV_TASK *task)
 
 void uv_exit_task(void)
 {
-    current->state = UV_TASK_EXIT;
+    current->state = UVCO_TASK_EXIT;
     schedule();
 }
 
@@ -176,8 +174,8 @@ static void contextswitch(Context *from, Context *to)
 
 void schedule(void)
 {
-    UV_TASK *next;
-    UV_TASK *prev;
+    UVCO_TASK *next;
+    UVCO_TASK *prev;
     
     next = uv_dequeue_running_task();
     if(!next){
@@ -185,7 +183,7 @@ void schedule(void)
     }
     
     prev = current;
-    if(prev->state == UV_TASK_EXIT){
+    if(prev->state == UVCO_TASK_EXIT){
         uv_free_task(prev);
         prev = idle_task;
     }

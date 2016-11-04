@@ -1,42 +1,42 @@
-#include <uviot.h>
+#include <uvco.h>
 
-static int test2_node_read(struct uviot_node *node, char *obj_name, UVIOT_REQ *req)
+static int test2_node_read(struct uvco_node *node, char *obj_name, UVCO_REQ *req)
 {
-    uviot_log(UVIOT_LOG_DEBUG, "run\n");
+    uvco_log(UVCO_LOG_DEBUG, "run\n");
     return 0;
 }
 
-static int test2_node_write(struct uviot_node *node, char *obj_name, UVIOT_REQ *req)
+static int test2_node_write(struct uvco_node *node, char *obj_name, UVCO_REQ *req)
 {
-    uviot_log(UVIOT_LOG_DEBUG, "run\n");
+    uvco_log(UVCO_LOG_DEBUG, "run\n");
     return 0;
 }
 
-static UVIOT_NODE test2_node = {
-	.name = "Test2.Node",
+static UVCO_NODE test2_node = {
+    .name = "Test2.Node",
     .read = test2_node_read,
     .write = test2_node_write,
 };
 
 
-static s32 test2_ev_handler(struct uviot_event *ev, UVIOT_REQ *req)
+static s32 test2_ev_handler(struct uvco_event *ev, UVCO_REQ *req)
 {
-	return 0;
-}
-
-static int test2_add_callback(struct uviot_req *req)
-{
-    uviot_log(UVIOT_LOG_INFO, "result = %"JSON_INTEGER_FORMAT"\n", 
-        json_integer_value(json_object_get(req->req, "result")) );
     return 0;
 }
 
-static s32 test2_mod_start(struct uviot_event *ev, UVIOT_REQ *req)
+static int test2_add_callback(struct uvco_req *req)
 {
-    UVIOT_REQ *req2, *req3;
+    uvco_log(UVCO_LOG_INFO, "result = %"JSON_INTEGER_FORMAT"\n", 
+    json_integer_value(json_object_get(req->req, "result")) );
+    return 0;
+}
 
-    req2 = uviot_alloc_req();
-    req3 = uviot_alloc_req();
+static s32 test2_mod_start(struct uvco_event *ev, UVCO_REQ *req)
+{
+    UVCO_REQ *req2, *req3;
+
+    req2 = uvco_alloc_req();
+    req3 = uvco_alloc_req();
     if((!req2) || (!req3) ){
         return -1;
     }
@@ -52,30 +52,30 @@ static s32 test2_mod_start(struct uviot_event *ev, UVIOT_REQ *req)
     
     req2->callback = test2_add_callback;
     
-    uviot_send_req(req2);
+    uvco_send_req(req2);
     
-    uviot_node_read("Test1.Node", NULL, req3);
-    uviot_node_write("Test2.Node", NULL, req3);
+    uvco_node_read("Test1.Node", NULL, req3);
+    uvco_node_write("Test2.Node", NULL, req3);
     
-	return 0;
+    return 0;
 }
 
-static UVIOT_MODULE test2_mod ={
-	.name = "test2_mod",
+static UVCO_MODULE test2_mod ={
+    .name = "test2_mod",
 };
 
-static UVIOT_EVENT test2_ev[] = 
+static UVCO_EVENT test2_ev[] = 
 {
     {.id = 0xdeadbeef, .handler = test2_ev_handler},
-    {.id = UVIOT_MODULE_START, .handler = test2_mod_start},
+    {.id = UVCO_MODULE_START, .handler = test2_mod_start},
 };
 
-static int uviot_module_test_init(void)
+static int uvco_module_test_init(void)
 {
-	uviot_register_module(&test2_mod, test2_ev, ARRAY_SIZE(test2_ev));
-	uviot_register_node(&test2_node, 1);
+    uvco_register_module(&test2_mod, test2_ev, ARRAY_SIZE(test2_ev));
+    uvco_register_node(&test2_node, 1);
 	
-	return 0;
+    return 0;
 }
 
-MODULE_INIT(uviot_module_test_init);
+MODULE_INIT(uvco_module_test_init);

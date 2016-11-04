@@ -1,5 +1,5 @@
 /* Copyright (c) 2005-2006 Russ Cox, MIT; see COPYRIGHT */
-#include <uv_context.h>
+#include <uvco_context.h>
 
 #if defined(__APPLE__)
 #if defined(__i386__)

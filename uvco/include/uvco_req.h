@@ -1,9 +1,9 @@
-#ifndef __UVIOT_MSG_H
-#define __UVIOT_MSG_H
+#ifndef __UVCO_MSG_H
+#define __UVCO_MSG_H
 
 #include <jansson.h>
 
-typedef struct uviot_req
+typedef struct uvco_req
 {
     struct list_head list;
     /* connect */
@@ -20,12 +20,12 @@ typedef struct uviot_req
     json_t *rsp;
 
     /* context */
-    int (*callback)(struct uviot_req *);
+    int (*callback)(struct uvco_req *);
     void *priv;
-}UVIOT_REQ;
+}UVCO_REQ;
 
-int uviot_send_req(UVIOT_REQ *req);
-UVIOT_REQ *uviot_alloc_req(void);
-void uviot_free_req(UVIOT_REQ *);
+int uvco_send_req(UVCO_REQ *req);
+UVCO_REQ *uvco_alloc_req(void);
+void uvco_free_req(UVCO_REQ *);
 
 #endif

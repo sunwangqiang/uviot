@@ -4,7 +4,7 @@ subdir_y +=
 subdir_m +=
 subdir_m += $(LIBUV)
 subdir_m += $(JANSSON)
-subdir_m += $(CURL)
+# subdir_m += $(CURL)
 subdir_y += $(UV_TASK)
 
 obj_y +=

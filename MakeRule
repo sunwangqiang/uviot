@@ -41,7 +41,7 @@ endif
 	$(AS) $*.S
 	
 clean: prepare_clean $(subdir_y_clean) $(subdir_m_clean)
-	$(RM) -fr $(BUILDIN_OBJ) $(obj_y) $(TARGET)
+	$(RM) -fr $(BUILDIN_OBJ) $(obj_y) $(asm_y) $(TARGET)
 
 $(subdir_y_clean):
 	$(Q)$(MAKE) -C $(patsubst _clean_%,%,$@) clean || exit 1 ;

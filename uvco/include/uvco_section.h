@@ -1,5 +1,5 @@
-#ifndef __UVIOT_SECTION_H
-#define __UVIOT_SECTION_H
+#ifndef __UVCO_SECTION_H
+#define __UVCO_SECTION_H
 /*
  * the following code is for init calls
  */
