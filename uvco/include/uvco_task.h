@@ -30,15 +30,15 @@ typedef struct uvco_task{
 
 extern UVCO_TASK *current;
 
-UVCO_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size);
-void uv_wakeup_task(UVCO_TASK *);
-void uv_yield_task(void);
+UVCO_TASK *uvco_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size);
+void uvco_wakeup_task(UVCO_TASK *);
+void uvco_yield_task(void);
 void schedule(void);
-UVCO_TASK *uv_dequeue_task(struct list_head *q);
-void uv_enqueue_task(struct list_head *, UVCO_TASK *);
-void uv_free_task(UVCO_TASK *);
-void uv_exit_task(void);
-void uv_run_scheduler(void);
-void uv_task_sleep(u64 ms);
+UVCO_TASK *uvco_dequeue_task(struct list_head *q);
+void uvco_enqueue_task(struct list_head *, UVCO_TASK *);
+void uvco_free_task(UVCO_TASK *);
+void uvco_exit_task(void);
+void uvco_run_scheduler(void);
+void uvco_task_sleep(u64 ms);
 
 #endif

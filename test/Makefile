@@ -8,8 +8,8 @@ subdir_y +=
 subdir_m +=
 
 obj_y += uviot_module_test.o
-
 obj_y += uviot_module_test2.o
+obj_y += uvco_task_test.o
 
 include $(TOP_DIR)/MakeRule
 

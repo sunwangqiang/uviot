@@ -11,20 +11,20 @@ static UVCO_TASK *idle_task;
 /*
  * This is the TRUE block entry
  */
-static void uv_idle_task(void *arg)
+static void uvco_idle_task(void *arg)
 {
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 }
 
-void uv_run_scheduler(void)
+void uvco_run_scheduler(void)
 {
-    idle_task = uv_create_task("idletask", uv_idle_task, NULL, 16*1024);
+    idle_task = uvco_create_task("idletask", uvco_idle_task, NULL, 16*1024);
     
     current = &init_task;
     schedule();
 }
 
-static void uv_start_task(u32 y, u32 x)
+static void uvco_start_task(u32 y, u32 x)
 {
 	UVCO_TASK *task;
 	ulong z;
@@ -35,11 +35,11 @@ static void uv_start_task(u32 y, u32 x)
 	task = (UVCO_TASK*)z;
 
     task->entry(task->startarg);
-    uv_exit_task();
+    uvco_exit_task();
     printf("all task exit\n");
 }
 
-UVCO_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
+UVCO_TASK *uvco_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
 {
     UVCO_TASK *task;
     sigset_t zero;
@@ -79,23 +79,23 @@ UVCO_TASK *uv_create_task(char *name, void (*entry)(void*), void *arg, u32 stack
     y = z;
     z >>= 16;	/* hide undefined 32-bit shift from 32-bit compilers */
     x = z>>16;
-    makecontext(&task->context.uc, (void(*)(void))uv_start_task, 2, y, x);
+    makecontext(&task->context.uc, (void(*)(void))uvco_start_task, 2, y, x);
     
     return task;
 }
 
-void uv_wakeup_task(UVCO_TASK *task)
+void uvco_wakeup_task(UVCO_TASK *task)
 {
     list_add(&task->list, &running_queue);
 }
 
-void uv_yield_task(void)
+void uvco_yield_task(void)
 {
     list_add_tail(&current->list, &running_queue);
     schedule();
 }
 
-UVCO_TASK *uv_dequeue_task(struct list_head *q)
+UVCO_TASK *uvco_dequeue_task(struct list_head *q)
 {
     struct list_head *element;
     
@@ -107,58 +107,58 @@ UVCO_TASK *uv_dequeue_task(struct list_head *q)
     return NULL;
 }
 
-void uv_task_waiton_queue(struct list_head *q)
+void uvco_task_waiton_queue(struct list_head *q)
 {    
-    uv_enqueue_task(q, current);
+    uvco_enqueue_task(q, current);
     schedule();
 }
 
-void uv_task_wakeup_queue(struct list_head *q)
+void uvco_task_wakeup_queue(struct list_head *q)
 {    
-    uv_enqueue_task(q, current);
+    uvco_enqueue_task(q, current);
 }
 
-static void uv_task_sleep_cb(uv_timer_t* timer)
+static void uvco_task_sleep_cb(uv_timer_t* timer)
 {
     UVCO_TASK *task;
 
     task = (UVCO_TASK *)timer->data;
     list_del(&task->list);//del from sleep_queue
     
-    uv_wakeup_task(task);
+    uvco_wakeup_task(task);
     schedule();
 }
 
-void uv_task_sleep(u64 ms)
+void uvco_task_sleep(u64 ms)
 {
     uv_timer_t timer;
 
     timer.data = current;
-    uv_enqueue_task(&sleep_queue, current);
+    uvco_enqueue_task(&sleep_queue, current);
     
     uv_timer_init(uv_default_loop(), &timer);
-    uv_timer_start(&timer, uv_task_sleep_cb, ms, 0);
+    uv_timer_start(&timer, uvco_task_sleep_cb, ms, 0);
     
     schedule();
 }
 
-UVCO_TASK *uv_dequeue_running_task(void)
+UVCO_TASK *uvco_dequeue_running_task(void)
 {
-    return uv_dequeue_task(&running_queue);
+    return uvco_dequeue_task(&running_queue);
 }
 
-void uv_enqueue_task(struct list_head *q, UVCO_TASK *task)
+void uvco_enqueue_task(struct list_head *q, UVCO_TASK *task)
 {
     list_add(&task->list, q);
 }
 
-void uv_free_task(UVCO_TASK *task)
+void uvco_free_task(UVCO_TASK *task)
 {
     free(task->name);
     free(task);
 }
 
-void uv_exit_task(void)
+void uvco_exit_task(void)
 {
     current->state = UVCO_TASK_EXIT;
     schedule();
@@ -177,14 +177,14 @@ void schedule(void)
     UVCO_TASK *next;
     UVCO_TASK *prev;
     
-    next = uv_dequeue_running_task();
+    next = uvco_dequeue_running_task();
     if(!next){
         next = idle_task;
     }
     
     prev = current;
     if(prev->state == UVCO_TASK_EXIT){
-        uv_free_task(prev);
+        uvco_free_task(prev);
         prev = idle_task;
     }
     current = next;

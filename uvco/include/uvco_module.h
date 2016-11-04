@@ -18,12 +18,10 @@
 typedef struct uvco_module{
     char *name;
     char *ext_address; // application address, unix or inet sock address
-    uv_loop_t *loop;
-	struct hlist_node hlist;
-	struct hlist_head ev_head[UVCO_EVENT_SLOT_SIZE];
+    struct hlist_node hlist;
+    struct hlist_head ev_head[UVCO_EVENT_SLOT_SIZE];
     void *priv;
 }UVCO_MODULE;
-
 
 
 #define UVCO_EVENT_CONTINUE 0x0001
