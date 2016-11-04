@@ -5,7 +5,9 @@ UVCO_TASK *current;
 
 static LIST_HEAD(running_queue);
 static LIST_HEAD(sleep_queue);
-static UVCO_TASK init_task;
+static UVCO_TASK init_task = {
+    .name = "inittask"
+};
 static UVCO_TASK *idle_task;
 
 /*
@@ -14,6 +16,8 @@ static UVCO_TASK *idle_task;
 static void uvco_idle_task(void *arg)
 {
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+    printf("idle task exit\n");
+    exit(0);
 }
 
 void uvco_run_scheduler(void)
@@ -185,7 +189,7 @@ void schedule(void)
     prev = current;
     if(prev->state == UVCO_TASK_EXIT){
         uvco_free_task(prev);
-        prev = idle_task;
+        prev = &init_task;
     }
     current = next;
     
