@@ -43,7 +43,7 @@ enum uvco_event_hook_priorities
 
 typedef struct uvco_event
 {
-    u32  id;
+    char *method;
     s32 (*handler)(struct uvco_event *, UVCO_REQ *);
     struct uvco_event *next;
     s32 priority;

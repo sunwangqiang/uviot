@@ -41,7 +41,7 @@ static s32 test2_mod_start(struct uvco_event *ev, UVCO_REQ *req)
         return -1;
     }
     
-    req2->id = 0x00000add;
+    req2->method = "add";
     req2->dst = "test_mod";
     
     req2->req = json_object();
@@ -66,8 +66,8 @@ static UVCO_MODULE test2_mod ={
 
 static UVCO_EVENT test2_ev[] = 
 {
-    {.id = 0xdeadbeef, .handler = test2_ev_handler},
-    {.id = UVCO_MODULE_START, .handler = test2_mod_start},
+    {.method = "deadbeef", .handler = test2_ev_handler},
+    {.method = "start", .handler = test2_mod_start},
 };
 
 static int uvco_module_test_init(void)

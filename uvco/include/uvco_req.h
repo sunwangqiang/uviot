@@ -15,7 +15,7 @@ typedef struct uvco_req
     char *src;
     
     /* business event */
-    u32 id; 
+    char *method; 
     json_t *req;
     json_t *rsp;
 

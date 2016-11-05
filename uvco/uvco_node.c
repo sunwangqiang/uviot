@@ -136,7 +136,7 @@ static UVCO_MODULE uvco_node_module ={
 
 static UVCO_EVENT uvco_node_event[] = 
 {
-    {.id = UVCO_MODULE_START, .handler = uvco_node_start},
+    {.method = "start", .handler = uvco_node_start},
 };
 
 static int uvco_node_init(void)

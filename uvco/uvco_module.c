@@ -13,16 +13,17 @@ int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
 	 * event hash
 	 */
 	for(i = 0; i< size; i++){
-		hash = u32_hash(ev[i].id) & (UVCO_EVENT_SLOT_SIZE -1);
+		hash = bkdr_hash(ev[i].method) & (UVCO_EVENT_SLOT_SIZE -1);
 		uvco_event_register(&mod->ev_head[hash], &ev[i]);
 	}
 	
 	/*
-	 * mod hash
+	 * module hash
 	 */
 	hash = bkdr_hash(mod->name);
 	hash = hash & (UVCO_MOD_SLOT_SIZE-1);
-	
+
+    
 	hlist_add_head(&mod->hlist, &mod_head[hash]);
     
     return 0;
@@ -80,7 +81,7 @@ void uvco_module_recv_req(UVCO_MODULE *mod, UVCO_REQ *req)
 {
     u32 hash;
     
-    hash = u32_hash(req->id) & (UVCO_EVENT_SLOT_SIZE -1);
+    hash = bkdr_hash(req->method) & (UVCO_EVENT_SLOT_SIZE -1);
     
     uvco_event_call(mod, &mod->ev_head[hash], req);
         
@@ -151,7 +152,7 @@ int uvco_module_start(void)
     
     memset(&req, 0, sizeof(UVCO_REQ));
     
-    req.id = UVCO_MODULE_START;
+    req.method = "start";
     req.dst = UVCO_BROADCAST_DST;
     req.callback = uvco_module_start_callback;
     
@@ -204,8 +205,8 @@ static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head, UVCO_REQ *req)
 
     ev = *head;
     while (ev){
-        uvco_log(UVCO_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, id:%08x, req:%p, res:%p}\n",
-                  mod->name, req->dst, req->src, req->id, req->req, req->rsp);
+        uvco_log(UVCO_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, method:%s, req:%p, res:%p}\n",
+                  mod->name, req->dst, req->src, req->method, req->req, req->rsp);
         
         ret = ev->handler(ev, req);
         if (ret == UVCO_EVENT_STOP){
@@ -223,7 +224,7 @@ int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, UVCO_REQ *req)
 
     hlist_for_each_safe(p, n, head){
         el = (UVCO_EVENT_LIST *)hlist_entry(p, UVCO_EVENT_LIST, hlist);
-        if (el->head->id != req->id){
+        if (!strcmp(el->head->method, req->method)){
             continue ;
         }
         return __uvco_event_call(mod, &el->head, req);
@@ -237,7 +238,7 @@ static int __uvco_event_show(UVCO_EVENT **head)
 
     ev = *head;
     while (ev){
-        printf("event: id = %08x, handler = %p\n", ev->id, ev->handler);;
+        printf("event: method = %s, handler = %p\n", ev->method, ev->handler);;
         ev = ev->next;
     }
     return 0;
@@ -291,7 +292,7 @@ int uvco_event_register(struct hlist_head *head, UVCO_EVENT *ev)
 
     hlist_for_each_safe(p, n, head){
         el = (UVCO_EVENT_LIST *)hlist_entry(p, UVCO_EVENT_LIST, hlist);
-        if (el->head->id == ev->id){
+        if (strcmp(el->head->method, ev->method)){
             return __uvco_event_register(&el->head, ev);
         }
     }
@@ -323,7 +324,7 @@ int uvco_event_unregister(struct hlist_head *head, UVCO_EVENT *ev)
 
     hlist_for_each_safe(p, n, head){
         el = (UVCO_EVENT_LIST *)hlist_entry(p, UVCO_EVENT_LIST, hlist);
-        if (el->head->id != ev->id){
+        if (!strcmp(el->head->method, ev->method)){
             continue ;
         }
 

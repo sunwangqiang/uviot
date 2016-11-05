@@ -51,9 +51,9 @@ static UVCO_MODULE test_mod ={
 
 static UVCO_EVENT test_ev[] = 
 {
-    {.id = 0xdeadbeef, .handler = test_ev_handler},
-    {.id = 0x00000add, .handler = test_ev_add},
-    {.id = UVCO_MODULE_START, .handler = test_mod_start},
+    {.method = "deadbeef", .handler = test_ev_handler},
+    {.method = "add", .handler = test_ev_add},
+    {.method = "start", .handler = test_mod_start},
 };
 
 static int uvco_module_test_init(void)
