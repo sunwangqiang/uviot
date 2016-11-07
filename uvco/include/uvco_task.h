@@ -40,5 +40,7 @@ void uvco_free_task(UVCO_TASK *);
 void uvco_exit_task(void);
 void uvco_run_scheduler(void);
 void uvco_task_sleep(u64 ms);
+void uvco_block_task(UVCO_TASK *task);
+void uvco_unblock_task(UVCO_TASK *task);
 
 #endif

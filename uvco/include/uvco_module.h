@@ -6,6 +6,7 @@
 #define __UVCO_MODULE_H
 
 #include <uv.h>
+#include <uvco_task.h>
 
 #define UVCO_MODULE_NAME_SIZE 16
 #define UVCO_EVENT_SLOT_SIZE 8
@@ -17,9 +18,9 @@
 
 typedef struct uvco_module{
     char *name;
-    char *ext_address; // application address, unix or inet sock address
     struct hlist_node hlist;
     struct hlist_head ev_head[UVCO_EVENT_SLOT_SIZE];
+    UVCO_TASK *task;
     void *priv;
 }UVCO_MODULE;
 

@@ -40,7 +40,7 @@ static void uvco_start_task(u32 y, u32 x)
 
     task->entry(task->startarg);
     uvco_exit_task();
-    printf("all task exit\n");
+    printf("never reach here\n");
 }
 
 UVCO_TASK *uvco_create_task(char *name, void (*entry)(void*), void *arg, u32 stack_size)
@@ -126,11 +126,8 @@ static void uvco_task_sleep_cb(uv_timer_t* timer)
 {
     UVCO_TASK *task;
 
-    task = (UVCO_TASK *)timer->data;
-    list_del(&task->list);//del from sleep_queue
-    
-    uvco_wakeup_task(task);
-    schedule();
+    task = (UVCO_TASK *)timer->data;    
+    uvco_unblock_task(task);
 }
 
 void uvco_task_sleep(u64 ms)
@@ -138,11 +135,26 @@ void uvco_task_sleep(u64 ms)
     uv_timer_t timer;
 
     timer.data = current;
-    uvco_enqueue_task(&sleep_queue, current);
-    
     uv_timer_init(uv_default_loop(), &timer);
     uv_timer_start(&timer, uvco_task_sleep_cb, ms, 0);
+
+    uvco_block_task(current);
+}
+
+/*
+ * block the task, until someone wakeup it
+ */
+void uvco_block_task(UVCO_TASK *task)
+{
+    uvco_enqueue_task(&sleep_queue, task);
+    schedule();
+}
+
+void uvco_unblock_task(UVCO_TASK *task)
+{
+    list_del(&task->list);
     
+    uvco_wakeup_task(task);
     schedule();
 }
 

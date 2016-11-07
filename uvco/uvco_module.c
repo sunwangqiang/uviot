@@ -1,55 +1,104 @@
 #include <uvco.h>
+#include <uv.h>
 
 #define UVCO_MOD_SLOT_SIZE 64
+#define UVCO_MOD_STACK_SIZE 32*1024
+#define UVCO_MOD_PIPE_NAME_SIZE 1024
 
 static struct hlist_head *mod_head;
 
+static void uvco_module_default_entry(void *arg)
+{
+    UVCO_MODULE *mod = (UVCO_MODULE *)arg;
+    uv_pipe_t pipe;
+    char *pipe_name;
+    
+    /*
+     * create a unix socket and wait on it
+     */
+    pipe_name = malloc(UVCO_MOD_PIPE_NAME_SIZE);
+    if(!pipe_name){
+        uvco_log(UVCO_LOG_ERR, "No memory\n");
+        uvco_exit_task();
+    }
+    
+    memset(pipe_name, 0, UVCO_MOD_PIPE_NAME_SIZE);
+    snprintf(pipe_name, UVCO_MOD_PIPE_NAME_SIZE, "/tmp/%s", mod->name);
+    
+    uv_pipe_init(uv_default_loop(), &pipe, 1);
+    uv_pipe_bind(&pipe, pipe_name);
+
+    //uv_read_start(pipe, uv_alloc_cb alloc_cb, uv_read_cb read_cb)
+    free(pipe_name);
+}
+
 int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
 {
-	u32 hash;
-	u32 i;
+    u32 hash;
+    u32 i;
+    UVCO_MODULE *m;
+    struct hlist_node *n;
+    struct hlist_head *h;
     
-	/*
-	 * event hash
-	 */
-	for(i = 0; i< size; i++){
-		hash = bkdr_hash(ev[i].method) & (UVCO_EVENT_SLOT_SIZE -1);
-		uvco_event_register(&mod->ev_head[hash], &ev[i]);
-	}
+    /*
+     * module hash
+     */
+    hash = bkdr_hash(mod->name);
+    hash = hash & (UVCO_MOD_SLOT_SIZE-1);
+    h = &mod_head[hash];
+    
+    hlist_for_each_entry(m, n, h, hlist){
+        if(!strcmp(m->name, mod->name)){
+            uvco_log(UVCO_LOG_ERR, "all ready has a module named %s\n", mod->name);
+            return -1;
+        }
+    }
+    
+    hlist_add_head(&mod->hlist, h);
+    
+    /*
+     * event hash
+     */
+    for(i = 0; i< size; i++){
+        hash = bkdr_hash(ev[i].method) & (UVCO_EVENT_SLOT_SIZE -1);
+        uvco_event_register(&mod->ev_head[hash], &ev[i]);
+    }
 	
-	/*
-	 * module hash
-	 */
-	hash = bkdr_hash(mod->name);
-	hash = hash & (UVCO_MOD_SLOT_SIZE-1);
-
-    
-	hlist_add_head(&mod->hlist, &mod_head[hash]);
-    
     return 0;
 }
 
 int uvco_register_module(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
 {
-	int i;
+    int i;
     
-	if((!mod) || (!ev)){
-		uvco_log(UVCO_LOG_ERR, "arg error, mod = %p, ev = %p\n", mod, ev);
-		return -EINVAL;
-	}
+    if((!mod) || (!ev)){
+        uvco_log(UVCO_LOG_ERR, "arg error, mod = %p, ev = %p\n", mod, ev);
+        return -EINVAL;
+    }
 	
-	for(i = 0; i< UVCO_EVENT_SLOT_SIZE; i++){
-		INIT_HLIST_HEAD(&mod->ev_head[i]);
-	}
+    for(i = 0; i< UVCO_EVENT_SLOT_SIZE; i++){
+        INIT_HLIST_HEAD(&mod->ev_head[i]);
+    }
 
-	uvco_module_attach_event(mod, ev, size);
+    if(uvco_module_attach_event(mod, ev, size)){
+        return -1;
+	}
 
     /*
-     * module has self address
+     * create a uvco_task
      */
-    if(mod->ext_address){
+    if(!mod->task){
+         mod->task = uvco_create_task(mod->name, uvco_module_default_entry, 
+                                       mod, UVCO_MOD_STACK_SIZE);
     }
-	return 0;
+    if(!mod->task){
+        uvco_log(UVCO_LOG_ERR, "uvco create task failed\n");
+        return -1;
+    }
+    
+    uvco_wakeup_task(mod->task);
+    
+    return 0;
 }
 
 /*
