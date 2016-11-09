@@ -18,11 +18,11 @@
 #include <uvco_log.h>
 #include <uvco_list.h>
 #include <uvco_type.h>
-#include <uvco_req.h>
 #include <uvco_module.h>
 #include <uvco_node.h>
 #include <uvco_conn.h>
 #include <uvco_task.h>
+#include <uvco_stream.h>
 
 #define UVCO_DEBUG 1
 #define UVCO_PIPENAME "/tmp/uvco-unix-sock"

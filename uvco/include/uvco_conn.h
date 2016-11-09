@@ -5,6 +5,4 @@ typedef struct uvco_conn
 {
 }UVCO_CONN;
 
-int uvco_conn_send(UVCO_REQ *msg);
-
 #endif

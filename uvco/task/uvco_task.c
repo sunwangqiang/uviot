@@ -11,6 +11,17 @@ static UVCO_TASK init_task = {
 static UVCO_TASK *idle_task;
 
 /*
+
+#1  0x002bf6da in uv__read (loop=0x2c9600, w=0x8056928, events=<value optimized out>) at src/unix/stream.c:1171
+#2  uv__stream_io (loop=0x2c9600, w=0x8056928, events=<value optimized out>) at src/unix/stream.c:1259
+#3  0x002c464e in uv__io_poll (loop=0x2c9600, timeout=-1) at src/unix/linux-core.c:382
+#4  0x002b6197 in uv_run (loop=0x2c9600, mode=UV_RUN_DEFAULT) at src/unix/core.c:354
+#5  0x0804a943 in uvco_idle_task ()
+#6  0x0804a9e6 in uvco_start_task ()
+#7  0x00148a5b in makecontext () from /lib/libc.so.6
+
+ */
+/*
  * This is the TRUE block entry
  */
 static void uvco_idle_task(void *arg)
@@ -22,7 +33,7 @@ static void uvco_idle_task(void *arg)
 
 void uvco_run_scheduler(void)
 {
-    idle_task = uvco_create_task("idletask", uvco_idle_task, NULL, 16*1024);
+    idle_task = uvco_create_task("uvco.idletask", uvco_idle_task, NULL, 16*1024);
     
     current = &init_task;
     schedule();
@@ -38,7 +49,9 @@ static void uvco_start_task(u32 y, u32 x)
 	z |= y;
 	task = (UVCO_TASK*)z;
 
+    printf("task %s start\n", task->name);
     task->entry(task->startarg);
+    printf("task %s exit\n", task->name);
     uvco_exit_task();
     printf("never reach here\n");
 }

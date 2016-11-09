@@ -10,7 +10,7 @@ static json_t *uvco_node_table;
  * .uvco node modules process create/read/write/list... events
  * .uvco node modules ack the request
  */
-int uvco_node_create(char *node_name, char *obj_name, UVCO_REQ *req)
+int uvco_node_create(char *node_name, char *obj_name, json_t *req, json_t *rsp)
 {
     UVCO_NODE *node;
     
@@ -20,7 +20,7 @@ int uvco_node_create(char *node_name, char *obj_name, UVCO_REQ *req)
     node = (UVCO_NODE *)(json_integer_value(json_object_get(uvco_node_table, node_name)));
     if(node){
         if(node->create){
-            return node->create(node, obj_name, req);
+            return node->create(node, obj_name, req, rsp);
         }else{
             return -1;
         }
@@ -32,7 +32,7 @@ int uvco_node_create(char *node_name, char *obj_name, UVCO_REQ *req)
     return -1;
 }
 
-int uvco_node_read(char *node_name, char *obj_name, UVCO_REQ *req)
+int uvco_node_read(char *node_name, char *obj_name, json_t *req, json_t *rsp)
 {
     UVCO_NODE *node;
     
@@ -42,7 +42,7 @@ int uvco_node_read(char *node_name, char *obj_name, UVCO_REQ *req)
     node = (UVCO_NODE *)(json_integer_value(json_object_get(uvco_node_table, node_name)));
     if(node){
         if(node->read){
-            return node->read(node, obj_name, req);
+            return node->read(node, obj_name, req, rsp);
         }else{
             return -1;
         }
@@ -54,7 +54,7 @@ int uvco_node_read(char *node_name, char *obj_name, UVCO_REQ *req)
     return -1;
 }
 
-int uvco_node_write(char *node_name, char *obj_name, UVCO_REQ *req)
+int uvco_node_write(char *node_name, char *obj_name, json_t *req, json_t *rsp)
 {
     UVCO_NODE *node;
     
@@ -64,7 +64,7 @@ int uvco_node_write(char *node_name, char *obj_name, UVCO_REQ *req)
     node = (UVCO_NODE *)(json_integer_value(json_object_get(uvco_node_table, node_name)));
     if(node){
         if(node->write){
-            return node->write(node, obj_name, req);
+            return node->write(node, obj_name, req, rsp);
         }else{
             return -1;
         }
@@ -76,7 +76,7 @@ int uvco_node_write(char *node_name, char *obj_name, UVCO_REQ *req)
     return -1;
 }
 
-int uvco_node_list(char *node_name, char *obj_name, UVCO_REQ *req)
+int uvco_node_list(char *node_name, char *obj_name, json_t *req, json_t *rsp)
 {
     UVCO_NODE *node;
     
@@ -86,7 +86,7 @@ int uvco_node_list(char *node_name, char *obj_name, UVCO_REQ *req)
     node = (UVCO_NODE *)(json_integer_value(json_object_get(uvco_node_table, node_name)));
     if(node){
         if(node->list){
-            return node->list(node, obj_name, req);
+            return node->list(node, obj_name, req, rsp);
         }else{
             return -1;
         }
@@ -98,7 +98,7 @@ int uvco_node_list(char *node_name, char *obj_name, UVCO_REQ *req)
     return -1;
 }
 
-int uvco_node_remove(char *node_name, char *obj_name, UVCO_REQ *req)
+int uvco_node_remove(char *node_name, char *obj_name, json_t *req, json_t *rsp)
 {
     UVCO_NODE *node;
     
@@ -108,7 +108,7 @@ int uvco_node_remove(char *node_name, char *obj_name, UVCO_REQ *req)
     node = (UVCO_NODE *)(json_integer_value(json_object_get(uvco_node_table, node_name)));
     if(node){
         if(node->remove){
-            return node->remove(node, obj_name, req);
+            return node->remove(node, obj_name, req, rsp);
         }else{
             return -1;
         }
@@ -120,7 +120,7 @@ int uvco_node_remove(char *node_name, char *obj_name, UVCO_REQ *req)
     return -1;
 }
 
-static s32 uvco_node_start(struct uvco_event *ev, UVCO_REQ *req)
+static s32 uvco_node_start(struct uvco_event *ev, json_t *req, json_t *rsp)
 {
     /*
      * TODO: publish and discover node tree
@@ -131,7 +131,7 @@ static s32 uvco_node_start(struct uvco_event *ev, UVCO_REQ *req)
 
 
 static UVCO_MODULE uvco_node_module ={
-	.name = "node.uvco",
+	.name = "uvco.node",
 };
 
 static UVCO_EVENT uvco_node_event[] = 

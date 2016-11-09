@@ -54,6 +54,8 @@ INCLUDE_DIR    := \
 		-I$(TOP_DIR)/uvco/lib/$(LIBUV)/include \
 		-I$(TOP_DIR)/uvco/lib/$(JANSSON)/src \
 		-I$(TOP_DIR)/uvco/include
+
+# -I$(TOP_DIR)/uvco/lib/$(LIBUV)/src
 		
 BUILD_CFLAGS += $(INCLUDE_DIR)
 

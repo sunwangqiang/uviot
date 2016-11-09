@@ -2,6 +2,7 @@
 #define __UVCO_STREAM_H
 
 
-void uvco_read(uv_stream_t* stream, ssize_t nread,  uv_buf_t *buf);
+int uvco_simple_read(const char *path, int flags, int mode, 
+                     char *buf, unsigned int len, int64_t off);
 
 #endif

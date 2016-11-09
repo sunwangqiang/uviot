@@ -7,6 +7,7 @@
 
 #include <uv.h>
 #include <uvco_task.h>
+#include <jansson.h>
 
 #define UVCO_MODULE_NAME_SIZE 16
 #define UVCO_EVENT_SLOT_SIZE 8
@@ -15,6 +16,9 @@
 #define UVCO_LIST_MODULE_CONTINUE 0x02
 
 #define UVCO_BROADCAST_DST "ffff.ffff.ffff"
+#define UVCO_DST_KEY "dst"
+#define UVCO_SRC_KEY "src"
+#define UVCO_METHOD_KEY "method"
 
 typedef struct uvco_module{
     char *name;
@@ -41,11 +45,11 @@ enum uvco_event_hook_priorities
     UVCO_EVENT_PRI_LOW = 2000,
     UVCO_EVENT_PRI_LAST = ((int)(~0U>>1))
 };
-
+ 
 typedef struct uvco_event
 {
     char *method;
-    s32 (*handler)(struct uvco_event *, UVCO_REQ *);
+    s32 (*handler)(struct uvco_event *, json_t *req, json_t *rsp);
     struct uvco_event *next;
     s32 priority;
     void *priv;
@@ -86,15 +90,22 @@ static inline u32 u32_hash(u32 value)
 	return hash;
 }
 
+static inline UVCO_MODULE *uvco_get_module(void)
+{
+    return (UVCO_MODULE *)container_of(current, UVCO_MODULE, task);
+}
+
 int uvco_event_register(struct hlist_head *head, UVCO_EVENT *ev);
 int uvco_event_unregister(struct hlist_head *head, UVCO_EVENT *ev);
 int uvco_event_show(struct hlist_head *head);
 
-int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, UVCO_REQ *req);
+int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, char *method,
+                    json_t *req, json_t *rsp);
 
 UVCO_MODULE *uvco_lookup_module(char *name);
 
-void uvco_module_recv_req(UVCO_MODULE *mod, UVCO_REQ *req);
+int uvco_module_recv_req(UVCO_MODULE *mod, char *method, 
+                          json_t *req, json_t *rsp);
 
 int uvco_register_module(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size);
 int uvco_unregister_module(UVCO_MODULE *mod);

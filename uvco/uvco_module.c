@@ -1,35 +1,142 @@
-#include <uvco.h>
+
 #include <uv.h>
+#include <uvco.h>
+
+#if defined(__linux__)
+#include <sys/socket.h>
+#include <sys/un.h>
+#endif
 
 #define UVCO_MOD_SLOT_SIZE 64
 #define UVCO_MOD_STACK_SIZE 32*1024
 #define UVCO_MOD_PIPE_NAME_SIZE 1024
+#define UVCO_MOD_MSG_SIZE 64*1024
 
 static struct hlist_head *mod_head;
 
-static void uvco_module_default_entry(void *arg)
+
+void uvco_module_alloc_cb(uv_handle_t* handle, size_t suggested_size,
+                            uv_buf_t* buf)
+{
+    static char base[UVCO_MOD_MSG_SIZE];
+
+    buf->base = base;
+    buf->len = sizeof(base);
+}
+
+/*
+  the format of req & rsp
+
+   +-----------+
+   | dst       |
+   +-----------+
+   | src       |
+   +-----------+
+   | method    |
+   +-----------+
+   |rpc content|
+   +-----------+
+
+ */
+ 
+void uvco_module_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf)
+{
+    UVCO_MODULE *mod;
+    json_t *req, *rsp;
+    json_error_t err;
+    char *dst;
+    char *method;
+    
+    if(nread < 0){
+        perror(__FUNCTION__);
+        printf("errno = %d\n", nread);
+        return;
+    }
+    /*
+     * decode buf
+     */
+    req = json_loadb(buf->base, buf->len, 0, &err);
+    if(!req){
+        return;
+    }
+    
+    dst = (char *)json_string_value(json_object_get(req, UVCO_DST_KEY));
+    method = (char *)json_string_value(json_object_get(req, UVCO_METHOD_KEY));
+    if(!dst || !method){
+        goto exit;
+    }
+    
+    mod = uvco_get_module();
+    if(strcmp(dst, mod->name)){
+        goto exit;
+    }
+    
+    rsp = json_object();
+    if(!rsp){
+        goto exit;
+    }
+    uvco_module_recv_req(mod, method, req, rsp);
+
+    /*
+     * TODO: process rsp
+     */
+    json_decref(rsp);
+exit:
+    json_decref(req);
+}
+
+#if 0
+void uvco_show_watcher_queue(uv_loop_t *loop)
+{
+    QUEUE *q;
+    uv__io_t* w;
+  
+    QUEUE_FOREACH(q, &loop->watcher_queue){
+        w = QUEUE_DATA(q, uv__io_t, watcher_queue);
+        printf("### w->fd = %d, nwatchers = %d\n", w->fd, loop->nwatchers);
+    }
+}
+#endif
+
+static void uvco_module_main(void *arg)
 {
     UVCO_MODULE *mod = (UVCO_MODULE *)arg;
     uv_pipe_t pipe;
-    char *pipe_name;
+    char pipe_name[UVCO_MOD_PIPE_NAME_SIZE];
+    int sock;
+    struct sockaddr_un sun;
+    int r;
+    socklen_t sun_len;
+    uv_loop_t *loop;
     
     /*
-     * create a unix socket and wait on it
-     */
-    pipe_name = malloc(UVCO_MOD_PIPE_NAME_SIZE);
-    if(!pipe_name){
-        uvco_log(UVCO_LOG_ERR, "No memory\n");
-        uvco_exit_task();
-    }
-    
+     * create a unix socket and wait for it
+     */    
     memset(pipe_name, 0, UVCO_MOD_PIPE_NAME_SIZE);
     snprintf(pipe_name, UVCO_MOD_PIPE_NAME_SIZE, "/tmp/%s", mod->name);
-    
-    uv_pipe_init(uv_default_loop(), &pipe, 1);
-    uv_pipe_bind(&pipe, pipe_name);
 
-    //uv_read_start(pipe, uv_alloc_cb alloc_cb, uv_read_cb read_cb)
-    free(pipe_name);
+    unlink(pipe_name);
+    
+    sock = socket(AF_LOCAL, SOCK_DGRAM, 0);
+    assert(sock != -1);
+
+    sun_len = sizeof(sun);
+    memset(&sun, 0, sun_len);
+    sun.sun_family = AF_UNIX;
+    memcpy(sun.sun_path, pipe_name, sizeof(sun.sun_path));
+
+    r = bind(sock, (struct sockaddr*)&sun, sun_len);
+    assert(r == 0);
+    
+    loop = uv_default_loop();
+    r = uv_pipe_init(loop, &pipe, 1);
+    assert(r == 0);
+    r = uv_pipe_open(&pipe, sock);
+    assert(r == 0);
+    
+    uv_read_start((uv_stream_t*)&pipe, uvco_module_alloc_cb, uvco_module_read_cb);
+    
+    schedule();
 }
 
 int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
@@ -60,6 +167,10 @@ int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
      * event hash
      */
     for(i = 0; i< size; i++){
+        if(!ev[i].method){
+            uvco_log(UVCO_LOG_ERR, "%s register a null method\n", mod->name);
+            continue;
+        }
         hash = bkdr_hash(ev[i].method) & (UVCO_EVENT_SLOT_SIZE -1);
         uvco_event_register(&mod->ev_head[hash], &ev[i]);
     }
@@ -71,11 +182,17 @@ int uvco_register_module(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
 {
     int i;
     
-    if((!mod) || (!ev)){
-        uvco_log(UVCO_LOG_ERR, "arg error, mod = %p, ev = %p\n", mod, ev);
+    if((!mod) || (!mod->name)|| (!ev)){
+        uvco_log(UVCO_LOG_ERR, "arg error, mod = %p, name = %p, ev = %p\n", 
+                 mod, mod->name, ev);
         return -EINVAL;
     }
-	
+
+	if(strlen(mod->name) > 512){
+        uvco_log(UVCO_LOG_ERR, "mod name too long!\n");
+        return -EINVAL;
+	}
+
     for(i = 0; i< UVCO_EVENT_SLOT_SIZE; i++){
         INIT_HLIST_HEAD(&mod->ev_head[i]);
     }
@@ -88,7 +205,7 @@ int uvco_register_module(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
      * create a uvco_task
      */
     if(!mod->task){
-         mod->task = uvco_create_task(mod->name, uvco_module_default_entry, 
+         mod->task = uvco_create_task(mod->name, uvco_module_main, 
                                        mod, UVCO_MOD_STACK_SIZE);
     }
     if(!mod->task){
@@ -126,22 +243,13 @@ static int uvco_module_init(void)
 	return 0;
 }
 
-void uvco_module_recv_req(UVCO_MODULE *mod, UVCO_REQ *req)
+int uvco_module_recv_req(UVCO_MODULE *mod, char *method, json_t *req, json_t *rsp)
 {
     u32 hash;
     
-    hash = bkdr_hash(req->method) & (UVCO_EVENT_SLOT_SIZE -1);
+    hash = bkdr_hash(method) & (UVCO_EVENT_SLOT_SIZE -1);
     
-    uvco_event_call(mod, &mod->ev_head[hash], req);
-        
-    return;
-}
-
-void uvco_module_send_req(UVCO_MODULE *mod, UVCO_REQ *req)
-{
-
-    req->src = mod->name;
-    uvco_send_req(req);
+    return uvco_event_call(mod, &mod->ev_head[hash], method, req, rsp);  
 }
 
 UVCO_MODULE *uvco_lookup_module(char *name)
@@ -186,30 +294,6 @@ void uvco_list_each_module(int (*cb)(UVCO_MODULE *, void *), void *arg)
     return;
 }
 
-int uvco_module_start_callback(UVCO_REQ *req)
-{
-    printf("UVCO_MODULE_START req callback\n");
-    return 0;
-}
-
-/*
- * send UVCO_MODULE_START event to every module
- */
-int uvco_module_start(void)
-{
-    UVCO_REQ req;
-    
-    memset(&req, 0, sizeof(UVCO_REQ));
-    
-    req.method = "start";
-    req.dst = UVCO_BROADCAST_DST;
-    req.callback = uvco_module_start_callback;
-    
-    uvco_send_req(&req);
-    
-    return 0;
-}
-
 #ifdef UVCO_DEBUG
 
 static int uvco_debug_show_event(UVCO_MODULE *mod)
@@ -245,19 +329,22 @@ static int uvco_debug(void)
 LATE_INIT(uvco_debug);
 #endif
 
+#if 0
+        uvco_log(UVCO_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, method:%s, req:%p, res:%p}\n",
+                  mod->name, json_string_value(json_object(req, "dst")), 
+                             json_string_value(json_object(req, "src")), 
+                             req->method, req->req, req->rsp);
+#endif
 
-
-static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head, UVCO_REQ *req)
+static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head,  
+                             json_t *req, json_t *rsp)
 {
     UVCO_EVENT *ev;
     int  ret = UVCO_EVENT_CONTINUE;
 
     ev = *head;
     while (ev){
-        uvco_log(UVCO_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, method:%s, req:%p, res:%p}\n",
-                  mod->name, req->dst, req->src, req->method, req->req, req->rsp);
-        
-        ret = ev->handler(ev, req);
+        ret = ev->handler(ev, req, rsp);
         if (ret == UVCO_EVENT_STOP){
             break;
         }
@@ -266,17 +353,18 @@ static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head, UVCO_REQ *req)
     return ret;
 }
 
-int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, UVCO_REQ *req)
+int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, char *method,
+                    json_t *req, json_t *rsp)
 {
     struct hlist_node *p, *n;
     UVCO_EVENT_LIST *el;
 
     hlist_for_each_safe(p, n, head){
         el = (UVCO_EVENT_LIST *)hlist_entry(p, UVCO_EVENT_LIST, hlist);
-        if (!strcmp(el->head->method, req->method)){
+        if (strcmp(el->head->method, method)){
             continue ;
         }
-        return __uvco_event_call(mod, &el->head, req);
+        return __uvco_event_call(mod, &el->head, req, rsp);
     }
     return -EINVAL;
 }

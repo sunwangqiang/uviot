@@ -1,12 +1,12 @@
 #include <uvco.h>
 
-static int test2_node_read(struct uvco_node *node, char *obj_name, UVCO_REQ *req)
+static int test2_node_read(struct uvco_node *node, char *obj_name, json_t *req, json_t *rsp)
 {
     uvco_log(UVCO_LOG_DEBUG, "run\n");
     return 0;
 }
 
-static int test2_node_write(struct uvco_node *node, char *obj_name, UVCO_REQ *req)
+static int test2_node_write(struct uvco_node *node, char *obj_name, json_t *req, json_t *rsp)
 {
     uvco_log(UVCO_LOG_DEBUG, "run\n");
     return 0;
@@ -19,49 +19,21 @@ static UVCO_NODE test2_node = {
 };
 
 
-static s32 test2_ev_handler(struct uvco_event *ev, UVCO_REQ *req)
+static s32 test2_ev_handler(struct uvco_event *ev, json_t *req, json_t *rsp)
 {
     return 0;
 }
 
-static int test2_add_callback(struct uvco_req *req)
-{
-    uvco_log(UVCO_LOG_INFO, "result = %"JSON_INTEGER_FORMAT"\n", 
-    json_integer_value(json_object_get(req->req, "result")) );
-    return 0;
-}
 
-static s32 test2_mod_start(struct uvco_event *ev, UVCO_REQ *req)
-{
-    UVCO_REQ *req2, *req3;
 
-    req2 = uvco_alloc_req();
-    req3 = uvco_alloc_req();
-    if((!req2) || (!req3) ){
-        return -1;
-    }
-    
-    req2->method = "add";
-    req2->dst = "test_mod";
-    
-    req2->req = json_object();
-    
-    json_object_set(req2->req, "adder1", json_integer(0x32));
-    json_object_set(req2->req, "adder2", json_integer(0x32));
-    json_object_set(req2->req, "result", json_integer(0x00));
-    
-    req2->callback = test2_add_callback;
-    
-    uvco_send_req(req2);
-    
-    uvco_node_read("Test1.Node", NULL, req3);
-    uvco_node_write("Test2.Node", NULL, req3);
-    
+static s32 test2_mod_start(struct uvco_event *ev, json_t *req, json_t *rsp)
+{
+    uvco_log(UVCO_LOG_DEBUG, "run\n");
     return 0;
 }
 
 static UVCO_MODULE test2_mod ={
-    .name = "test2_mod",
+    .name = "uvco.test.test2",
 };
 
 static UVCO_EVENT test2_ev[] = 

@@ -52,10 +52,6 @@ int uvco_init(int argc, char *argv[])
     if(result){
         return result;
     }
-    result = uvco_module_start();
-    if(result){
-        return result;
-    }
     
     uvco_log(UVCO_LOG_INFO, "ok\n");
     

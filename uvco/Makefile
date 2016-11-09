@@ -10,7 +10,8 @@ obj_y += uvco_log.o
 obj_y += uvco_section.o
 obj_y += uvco_module.o
 obj_y += uvco_node.o
-obj_y += uvco_req.o
 obj_y += uvco_conn.o
+obj_y += uvco_stream.o
+obj_y += uvco_diag.o
 
 include $(TOP_DIR)/MakeRule

@@ -2,7 +2,7 @@
 
 
 
-int uvco_conn_send(UVCO_REQ *req)
+int uvco_conn_send(void)
 {
     return 0;
 }
