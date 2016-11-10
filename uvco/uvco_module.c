@@ -10,19 +10,8 @@
 #define UVCO_MOD_SLOT_SIZE 64
 #define UVCO_MOD_STACK_SIZE 32*1024
 #define UVCO_MOD_PIPE_NAME_SIZE 1024
-#define UVCO_MOD_MSG_SIZE 64*1024
 
 static struct hlist_head *mod_head;
-
-
-void uvco_module_alloc_cb(uv_handle_t* handle, size_t suggested_size,
-                            uv_buf_t* buf)
-{
-    static char base[UVCO_MOD_MSG_SIZE];
-
-    buf->base = base;
-    buf->len = sizeof(base);
-}
 
 /*
   the format of req & rsp
@@ -38,20 +27,31 @@ void uvco_module_alloc_cb(uv_handle_t* handle, size_t suggested_size,
    +-----------+
 
  */
- 
-void uvco_module_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf)
+
+static int uvco_module_process_req(UVCO_MODULE *mod, char *method, json_t *req, json_t *rsp)
+{
+    u32 hash;
+    
+    hash = bkdr_hash(method) & (UVCO_EVENT_SLOT_SIZE -1);
+    
+    return uvco_event_call(mod, &mod->ev_head[hash], method, req, rsp);  
+}
+
+static int uvco_module_process_rsp(UVCO_MODULE *mod, char *method, json_t *req, json_t *rsp)
+{
+    
+    return 0;  
+}
+
+void uvco_module_recv(uv_buf_t *buf)
 {
     UVCO_MODULE *mod;
     json_t *req, *rsp;
     json_error_t err;
     char *dst;
     char *method;
+    int ret;
     
-    if(nread < 0){
-        perror(__FUNCTION__);
-        printf("errno = %d\n", nread);
-        return;
-    }
     /*
      * decode buf
      */
@@ -75,7 +75,16 @@ void uvco_module_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf
     if(!rsp){
         goto exit;
     }
-    uvco_module_recv_req(mod, method, req, rsp);
+
+    uvco_log(UVCO_LOG_DEBUG, "module[%s] recv req {dst:%s, src:%s, method:%s}\n",
+              mod->name, json_string_value(json_object_get(req, "dst")), 
+                         json_string_value(json_object_get(req, "src")), 
+                         method);
+
+    ret = uvco_module_process_req(mod, method, req, rsp);
+    if(!ret){
+        uvco_module_process_rsp(mod, method, req, rsp);
+    }
 
     /*
      * TODO: process rsp
@@ -84,19 +93,6 @@ void uvco_module_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf
 exit:
     json_decref(req);
 }
-
-#if 0
-void uvco_show_watcher_queue(uv_loop_t *loop)
-{
-    QUEUE *q;
-    uv__io_t* w;
-  
-    QUEUE_FOREACH(q, &loop->watcher_queue){
-        w = QUEUE_DATA(q, uv__io_t, watcher_queue);
-        printf("### w->fd = %d, nwatchers = %d\n", w->fd, loop->nwatchers);
-    }
-}
-#endif
 
 static void uvco_module_main(void *arg)
 {
@@ -108,6 +104,7 @@ static void uvco_module_main(void *arg)
     int r;
     socklen_t sun_len;
     uv_loop_t *loop;
+    uv_buf_t buf;
     
     /*
      * create a unix socket and wait for it
@@ -127,16 +124,22 @@ static void uvco_module_main(void *arg)
 
     r = bind(sock, (struct sockaddr*)&sun, sun_len);
     assert(r == 0);
-    
+
     loop = uv_default_loop();
     r = uv_pipe_init(loop, &pipe, 1);
     assert(r == 0);
     r = uv_pipe_open(&pipe, sock);
     assert(r == 0);
-    
-    uv_read_start((uv_stream_t*)&pipe, uvco_module_alloc_cb, uvco_module_read_cb);
-    
-    schedule();
+
+    while(1){
+        uvco_stream_read((uv_stream_t*)&pipe, &buf);
+        if(buf.len < 0){
+            perror(__FUNCTION__);
+            continue;
+        }
+        uvco_module_recv(&buf);
+        uvco_free_buf(&buf);
+    }
 }
 
 int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)
@@ -243,15 +246,6 @@ static int uvco_module_init(void)
 	return 0;
 }
 
-int uvco_module_recv_req(UVCO_MODULE *mod, char *method, json_t *req, json_t *rsp)
-{
-    u32 hash;
-    
-    hash = bkdr_hash(method) & (UVCO_EVENT_SLOT_SIZE -1);
-    
-    return uvco_event_call(mod, &mod->ev_head[hash], method, req, rsp);  
-}
-
 UVCO_MODULE *uvco_lookup_module(char *name)
 {
     u32 hash;
@@ -327,13 +321,6 @@ static int uvco_debug(void)
 }
 
 LATE_INIT(uvco_debug);
-#endif
-
-#if 0
-        uvco_log(UVCO_LOG_DEBUG, "module[%s] process req {dst:%s, src:%s, method:%s, req:%p, res:%p}\n",
-                  mod->name, json_string_value(json_object(req, "dst")), 
-                             json_string_value(json_object(req, "src")), 
-                             req->method, req->req, req->rsp);
 #endif
 
 static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head,  

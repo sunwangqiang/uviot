@@ -58,4 +58,51 @@ openfail:
     return -1;
 }
 
+struct uvco_stream_read_ctx{
+    UVCO_TASK *task;
+    uv_buf_t *buf;
+};
+
+static void uvco_stream_read_alloc_cb(uv_handle_t* handle, size_t suggested_size,
+                            uv_buf_t* buf)
+{
+
+    struct uvco_stream_read_ctx *ctx = (struct uvco_stream_read_ctx *)handle->data;
+    
+    buf->base = ctx->buf->base = malloc(suggested_size);
+    buf->len = ctx->buf->len = buf->base?suggested_size:0;
+}
+
+static void uvco_stream_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf)
+{
+    struct uvco_stream_read_ctx *ctx = (struct uvco_stream_read_ctx *)stream->data;
+    
+    UVCO_TASK *task;
+
+    uv_read_stop(stream);
+    task = ctx->task;
+    uvco_unblock_task(task);
+}
+
+int uvco_stream_read(uv_stream_t* stream, uv_buf_t *buf)
+{
+    struct uvco_stream_read_ctx ctx;
+    
+    ctx.task = current;
+    ctx.buf = buf;
+    
+    stream->data = &ctx;
+    uv_read_start(stream, uvco_stream_read_alloc_cb, uvco_stream_read_cb);
+    uvco_block_task(current);
+
+    return buf->len;
+}
+
+void uvco_free_buf(uv_buf_t *buf)
+{
+    if(buf->base){
+        free(buf->base);
+        buf->base = NULL;
+    }
+}
 

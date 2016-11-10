@@ -104,9 +104,6 @@ int uvco_event_call(UVCO_MODULE *mod, struct hlist_head *head, char *method,
 
 UVCO_MODULE *uvco_lookup_module(char *name);
 
-int uvco_module_recv_req(UVCO_MODULE *mod, char *method, 
-                          json_t *req, json_t *rsp);
-
 int uvco_register_module(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size);
 int uvco_unregister_module(UVCO_MODULE *mod);
 int uvco_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size);
