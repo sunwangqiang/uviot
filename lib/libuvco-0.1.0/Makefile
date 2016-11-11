@@ -3,11 +3,10 @@
 TARGET = libuvco.so
 
 LINK_LIBS +=  \
-             -L$(TOP_DIR)/uvco/lib/$(LIBUV)/.libs/ -luv \
-             -L$(TOP_DIR)/uvco/lib/$(JANSSON)/src/.libs/ -ljansson 
+             -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
+             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson 
 			 
 subdir_y += task
-subdir_m += lib
 
 obj_y +=
 obj_y += uvco.o

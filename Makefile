@@ -5,9 +5,10 @@ BUILDIN_OBJ = buildin.o
 LIBUV = libuv-1.9.1
 JANSSON = jansson-2.9
 CURL = curl-7.50.3
+LIBUVCO = libuvco-0.1.0
 
 $(shell [ -d $(RELEASE_DIR) ] || mkdir -p $(RELEASE_DIR))
-export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL
+export TOP_DIR RELEASE_DIR BUILDIN_OBJ LIBUV JANSSON CURL LIBUVCO
 
 # If V equals 0 then the above command will be hidden.
 # If V equals 1 then the above command is displayed.
@@ -44,39 +45,40 @@ HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
 endif
 export HOSTCC HOSTCXX HOSTCXXFLAGS
 
-BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs \
+BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs -fpic\
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security 
 
 INCLUDE_DIR    := \
 		-I$(TOP_DIR)/include \
-		-I$(TOP_DIR)/uvco/lib/$(LIBUV)/include \
-		-I$(TOP_DIR)/uvco/lib/$(JANSSON)/src \
-		-I$(TOP_DIR)/uvco/include
+		-I$(TOP_DIR)/lib/$(LIBUV)/include \
+		-I$(TOP_DIR)/lib/$(JANSSON)/src \
+		-I$(TOP_DIR)/lib/$(LIBUVCO)/include
 
-# -I$(TOP_DIR)/uvco/lib/$(LIBUV)/src
+# -I$(TOP_DIR)/lib/$(LIBUV)/src
 		
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
 LINK_LIBS +=  \
-             -L$(TOP_DIR)/uvco/lib/$(LIBUV)/.libs/ -luv \
-             -L$(TOP_DIR)/uvco/lib/$(JANSSON)/src/.libs/ -ljansson 
+             -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
+             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson \
+			 -L$(TOP_DIR)/lib/$(LIBUVCO)/ -luvco
+			 
 # -w disable MAC OS X PIE warning
-LINK_FLAGS +=  -w -Wl,-rpath,$(TOP_DIR)/uvco/lib/$(JANSSON)/src/.libs/
+LINK_FLAGS +=  -w
 
 export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 
 ##define subdir_y subdir_m  obj_y and TARGET
 ## lib目录下既有编译到可执行文件的库，又有独立的库
 ## 先通过subdir_m优先进行编译，然后通过subdir_y_obj链接其生成的buildin.o
-# subdir_y += lib
-
-subdir_m += uvco
-subdir_y += test 
-obj_y +=
+# subdir_m += lib
 # subdir_y_obj += lib/$(BUILDIN_OBJ)
-subdir_y_obj += uvco/$(BUILDIN_OBJ)
+
+subdir_m += lib
+subdir_y += test 
+obj_y += uviot.o
 
 TARGET = uviot
 
