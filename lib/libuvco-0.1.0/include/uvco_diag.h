@@ -8,4 +8,7 @@ typedef struct uvco_diag_item{
     int (*cd)(struct uvco_diag_item *);
     int (*cat)(struct uvco_diag_item *);
 }UVCO_DIAG_ITEM;
+
+int uvco_diag_init(void);
+
 #endif

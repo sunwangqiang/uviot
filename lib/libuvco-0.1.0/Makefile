@@ -1,4 +1,5 @@
 ##define your subdir_y subdir_m and obj_y
+# shrext_cmds='`test .$module = .yes && echo .so || echo .dylib`'
 
 TARGET = libuvco.so
 

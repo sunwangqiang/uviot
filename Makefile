@@ -45,7 +45,7 @@ HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
 endif
 export HOSTCC HOSTCXX HOSTCXXFLAGS
 
-BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs -fpic\
+BUILD_CFLAGS   := -Wall -Werror -Wundef -Wstrict-prototypes -Wno-trigraphs\
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security 

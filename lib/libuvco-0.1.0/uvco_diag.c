@@ -18,11 +18,10 @@ static UVCO_MODULE uvco_diag_mod = {
     .name = "uvco.diag",
 };
 
-static int uvco_diag_init(void)
+int uvco_diag_init(void)
 {
     uvco_register_module(&uvco_diag_mod, uvco_diag_event, ARRAY_SIZE(uvco_diag_event));
     return 0;
 }
 
-MODULE_INIT(uvco_diag_init);
 

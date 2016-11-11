@@ -24,4 +24,6 @@ int uvco_node_write(char *node_name, char *obj_name, json_t *req, json_t *rsp);
 int uvco_node_list(char *node_name, char *obj_name, json_t *req, json_t *rsp);
 int uvco_node_remove(char *node_name, char *obj_name, json_t *req, json_t *rsp);
 
+int uvco_node_core_init(void);
+int uvco_node_init();
 #endif

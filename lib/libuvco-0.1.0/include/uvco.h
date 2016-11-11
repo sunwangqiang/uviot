@@ -16,6 +16,7 @@
 
 #include <uvco_section.h>
 #include <uvco_log.h>
+#include <uvco_diag.h>
 #include <uvco_list.h>
 #include <uvco_type.h>
 #include <uvco_module.h>

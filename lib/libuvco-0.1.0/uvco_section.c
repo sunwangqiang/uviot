@@ -36,6 +36,28 @@ void uvco_get_sect_addr(char *sect, initcall_t **start, initcall_t **end)
     }
 }
 
+static int base_init_dummy(void)
+{
+    return 0;
+}
+
+static int core_init_dummy(void)
+{
+    return 0;
+}
+static int module_init_dummy(void)
+{
+    return 0;
+}
+static int late_init_dummy(void)
+{
+    return 0;
+}
+BASE_INIT(base_init_dummy);
+CORE_INIT(core_init_dummy);
+MODULE_INIT(module_init_dummy);
+LATE_INIT(late_init_dummy);
+
 #endif
 
 int uvco_section_init(void)
@@ -89,25 +111,5 @@ int uvco_section_init(void)
     return 0;
 }
 
-static int base_init_dummy(void)
-{
-    return 0;
-}
 
-static int core_init_dummy(void)
-{
-    return 0;
-}
-static int module_init_dummy(void)
-{
-    return 0;
-}
-static int late_init_dummy(void)
-{
-    return 0;
-}
-BASE_INIT(base_init_dummy);
-CORE_INIT(core_init_dummy);
-MODULE_INIT(module_init_dummy);
-LATE_INIT(late_init_dummy);
 

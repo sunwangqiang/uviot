@@ -2,10 +2,8 @@
 #include <uv.h>
 #include <uvco.h>
 
-#if defined(__linux__)
 #include <sys/socket.h>
 #include <sys/un.h>
-#endif
 
 #define UVCO_MOD_SLOT_SIZE 64
 #define UVCO_MOD_STACK_SIZE 32*1024
@@ -133,7 +131,7 @@ static void uvco_module_main(void *arg)
 
     while(1){
         uvco_stream_read((uv_stream_t*)&pipe, &buf);
-        if(buf.len < 0){
+        if(buf.len == 0){
             perror(__FUNCTION__);
             continue;
         }
@@ -229,21 +227,21 @@ int uvco_unregister_module(UVCO_MODULE *mod)
 	return 0;
 }
 
-static int uvco_module_init(void)
+int uvco_module_init(void)
 {
-	int size = UVCO_MOD_SLOT_SIZE * sizeof(struct hlist_head);
-	int i;
+    int size = UVCO_MOD_SLOT_SIZE * sizeof(struct hlist_head);
+    int i;
 	
-	mod_head = malloc(size);
-	if(!mod_head){
-		return -ENOMEM;
-	}
-	memset(mod_head, 0, size);
+    mod_head = malloc(size);
+    if(!mod_head){
+        return -ENOMEM;
+    }
+    memset(mod_head, 0, size);
 	
-	for(i = 0; i< UVCO_MOD_SLOT_SIZE; i++){
-		INIT_HLIST_HEAD(&mod_head[i]);
-	}
-	return 0;
+    for(i = 0; i< UVCO_MOD_SLOT_SIZE; i++){
+        INIT_HLIST_HEAD(&mod_head[i]);
+    }
+    return 0;
 }
 
 UVCO_MODULE *uvco_lookup_module(char *name)
@@ -292,35 +290,34 @@ void uvco_list_each_module(int (*cb)(UVCO_MODULE *, void *), void *arg)
 
 static int uvco_debug_show_event(UVCO_MODULE *mod)
 {
-	int i;
-	
-	for(i = 0; i<UVCO_EVENT_SLOT_SIZE; i++){
-		if(!hlist_empty(&mod->ev_head[i])){
-			uvco_event_show(&mod->ev_head[i]);
-		}
-	}
-	return 0;
+    int i;
+    
+    for(i = 0; i<UVCO_EVENT_SLOT_SIZE; i++){
+        if(!hlist_empty(&mod->ev_head[i])){
+            uvco_event_show(&mod->ev_head[i]);
+        }
+    }
+    return 0;
 }
 
-static int uvco_debug(void)
+int uvco_debug(void)
 {
-	int i;
-	struct hlist_node *p, *n;
+    int i;
+    struct hlist_node *p, *n;
     UVCO_MODULE *mod;
-	
-	for(i = 0; i<UVCO_MOD_SLOT_SIZE; i++){
-		if(!hlist_empty(&mod_head[i])){
-			hlist_for_each_safe(p, n, &mod_head[i]){
-				mod = (UVCO_MODULE *)hlist_entry(p, UVCO_MODULE, hlist);
-				printf("mod [%s] event:\n", mod->name);
-				uvco_debug_show_event(mod);
-			}
-		}
-	}
-	return 0;
+    
+    for(i = 0; i<UVCO_MOD_SLOT_SIZE; i++){
+        if(!hlist_empty(&mod_head[i])){
+            hlist_for_each_safe(p, n, &mod_head[i]){
+                mod = (UVCO_MODULE *)hlist_entry(p, UVCO_MODULE, hlist);
+                printf("mod [%s] event:\n", mod->name);
+                uvco_debug_show_event(mod);
+            }
+        }
+    }
+    return 0;
 }
 
-LATE_INIT(uvco_debug);
 #endif
 
 static int __uvco_event_call(UVCO_MODULE *mod, UVCO_EVENT **head,  
@@ -463,5 +460,5 @@ int uvco_event_unregister(struct hlist_head *head, UVCO_EVENT *ev)
     return -EINVAL;
 }
 
-CORE_INIT(uvco_module_init);
+//CORE_INIT(uvco_module_init);
 

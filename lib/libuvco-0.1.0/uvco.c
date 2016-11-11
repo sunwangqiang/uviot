@@ -1,6 +1,8 @@
 #include <uvco.h>
 #include <uv.h>
 
+extern int uvco_debug(void);
+
 json_t *uvco_cfg;
 
 static void uvco_load_cfg(void)
@@ -26,12 +28,19 @@ int uvco_init(void)
     int result;
 
     uvco_load_cfg();
+    uvco_node_core_init();
+    uvco_module_init();
+    uvco_node_init();
     
     result = uvco_section_init();
     if(result){
         return result;
     }
+    uvco_diag_init();
     
+#ifdef UVCO_DEBUG
+    uvco_debug();
+#endif
     uvco_log(UVCO_LOG_INFO, "ok\n");
 
     uvco_run_scheduler();//never return

@@ -5,9 +5,8 @@ subdir_m +=
 subdir_m += $(LIBUV)
 subdir_m += $(JANSSON)
 # subdir_m += $(CURL)
-subdir_m += $(LIBUVCO)
+subdir_y += $(LIBUVCO)
 
 obj_y +=
 
 include $(TOP_DIR)/MakeRule
-
