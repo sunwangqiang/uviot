@@ -5,6 +5,8 @@
 *.a
 *.lai
 *.dylib
+*.so
+
 uviot
 
 
@@ -18,3 +20,7 @@ lib/jansson-2.9/src/.libs/libjansson-symbols.expsym
 
 lib/jansson-2.9/src/.libs/libjansson.exp
 
+
+
+
+applications/uvco_diag/uvco_diag

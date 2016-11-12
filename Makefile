@@ -60,10 +60,6 @@ INCLUDE_DIR    := \
 		
 BUILD_CFLAGS += $(INCLUDE_DIR)
 
-LINK_LIBS +=  \
-             -L$(TOP_DIR)/lib/$(LIBUV)/.libs/ -luv \
-             -L$(TOP_DIR)/lib/$(JANSSON)/src/.libs/ -ljansson \
-			 -L$(TOP_DIR)/lib/$(LIBUVCO)/ -luvco
 			 
 # -w disable MAC OS X PIE warning
 LINK_FLAGS +=  -w
@@ -77,13 +73,9 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 # subdir_y_obj += lib/$(BUILDIN_OBJ)
 
 subdir_m += lib
-subdir_y += test 
-obj_y += uviot.o
+subdir_m += applications
 
-TARGET = uviot
+# subdir_y += test 
+
 
 include $(TOP_DIR)/MakeRule
-
-$(TARGET):$(BUILDIN_OBJ)
-	$(Q)$(CC) $(LINK_FLAGS) $(LINK_LIBS) $^  -o $@
-	@echo "Compile    " $^  -o $@
