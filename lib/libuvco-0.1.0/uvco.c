@@ -29,14 +29,14 @@ int uvco_init(void)
 
     uvco_load_cfg();
     uvco_node_core_init();
-    uvco_module_init();
-    uvco_node_init();
+    uvco_module_core_init();
+    uvco_node_module_init();
     
     result = uvco_section_init();
     if(result){
         return result;
     }
-    uvco_diag_init();
+    uvco_diag_module_init();
     
 #ifdef UVCO_DEBUG
     uvco_debug();

@@ -227,7 +227,7 @@ int uvco_unregister_module(UVCO_MODULE *mod)
 	return 0;
 }
 
-int uvco_module_init(void)
+int uvco_module_core_init(void)
 {
     int size = UVCO_MOD_SLOT_SIZE * sizeof(struct hlist_head);
     int i;

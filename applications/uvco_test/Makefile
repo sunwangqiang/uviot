@@ -16,7 +16,4 @@ obj_y += uvco_test_main.o
 
 include $(TOP_DIR)/MakeRule
 
-$(TARGET):$(BUILDIN_OBJ)
-	$(Q)$(CC) $(LINK_FLAGS) $(LINK_LIBS) $^  -o $@
-	@echo "Compile    " $^  -o $@
 

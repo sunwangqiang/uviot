@@ -9,6 +9,6 @@ typedef struct uvco_diag_item{
     int (*cat)(struct uvco_diag_item *);
 }UVCO_DIAG_ITEM;
 
-int uvco_diag_init(void);
+int uvco_diag_module_init(void);
 
 #endif

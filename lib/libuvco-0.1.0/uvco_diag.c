@@ -15,10 +15,10 @@ static UVCO_EVENT uvco_diag_event[] = {
 };
 
 static UVCO_MODULE uvco_diag_mod = {
-    .name = "uvco.diag",
+    .name = "uvco.diag", //TODO: strcat with APP name
 };
 
-int uvco_diag_init(void)
+int uvco_diag_module_init(void)
 {
     uvco_register_module(&uvco_diag_mod, uvco_diag_event, ARRAY_SIZE(uvco_diag_event));
     return 0;

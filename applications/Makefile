@@ -1,6 +1,6 @@
 subdir_y +=
 
-subdir_m += uvco_diag
+subdir_m += uvco_cli
 subdir_m += uvco_test
 subdir_m += uviot
 

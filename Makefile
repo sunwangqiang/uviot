@@ -75,7 +75,5 @@ export BUILD_CFLAGS INCLUDE_DIR LINK_FLAGS
 subdir_m += lib
 subdir_m += applications
 
-# subdir_y += test 
-
 
 include $(TOP_DIR)/MakeRule

@@ -112,6 +112,6 @@ void uvco_list_each_module(int (*cb)(UVCO_MODULE *, void *), void *arg);
 UVCO_MODULE *uvco_lookup_module(char *name);
 
 int uvco_section_init(void);
-int uvco_module_init(void);
+int uvco_module_core_init(void);
 
 #endif

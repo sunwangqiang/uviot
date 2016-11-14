@@ -139,7 +139,7 @@ static UVCO_EVENT uvco_node_event[] =
     {.method = "start", .handler = uvco_node_start},
 };
 
-int uvco_node_init(void)
+int uvco_node_module_init(void)
 {
     uvco_register_module(&uvco_node_module, uvco_node_event, 
                         ARRAY_SIZE(uvco_node_event));

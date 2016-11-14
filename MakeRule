@@ -33,6 +33,10 @@ ifneq ($(strip $(obj_y)$(subdir_y_obj)),)
 	$(LD) -r -o $@ $^
 endif
 
+$(TARGET):$(BUILDIN_OBJ)
+	$(Q)$(CC) $(LINK_FLAGS) $(LINK_LIBS) $^  -o $@
+	@echo "Compile    " $^  -o $@
+	
 .c.o:
 	$(Q)$(CC) $(BUILD_CFLAGS) $(CC_CFLAGS) -c $<
 	@echo "Compile    " $<
