@@ -12,3 +12,9 @@ lib/curl-7.50.3/src/curl
 lib/curl-7.50.3/src/tool_hugehelp.c
 lib/jansson-2.9/src/.libs/libjansson-symbols.expsym
 lib/jansson-2.9/src/.libs/libjansson.exp
+
+applications/uvco_cli/uvco_cli
+
+applications/uvco_test/uvco_test
+
+applications/uviot/uviot

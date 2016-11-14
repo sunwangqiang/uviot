@@ -1,14 +1,14 @@
 ##define your subdir_y subdir_m and obj_y
 
-LINK_LIBS = -L$(TOP_DIR)/lib/$(LIBUVCO)/ -luvco
+TARGET = uvco_cli
 
-TARGET = uvco_diag
+LINK_LIBS = -L$(TOP_DIR)/lib/$(LIBUVCO)/ -luvco
 
 subdir_y +=
 
 subdir_m +=
 
-obj_y += uvco_diag.o
+obj_y += uvco_cli.o
 
 include $(TOP_DIR)/MakeRule
 
