@@ -15,6 +15,7 @@ typedef struct
 #define UVCO_TASK_SLEEP 0x01
 #define UVCO_TASK_STOP 0x02
 #define UVCO_TASK_EXIT 0x03
+#define UVCO_DEFAULT_STACK_SIZE 32*1024
 
 typedef struct uvco_task{
     char *name;
@@ -27,6 +28,11 @@ typedef struct uvco_task{
     void *startarg;
     void *priv;
 }UVCO_TASK;
+
+typedef struct main_arg{
+    int argc;
+    char **argv;
+}MAIN_ARG;
 
 extern UVCO_TASK *current;
 

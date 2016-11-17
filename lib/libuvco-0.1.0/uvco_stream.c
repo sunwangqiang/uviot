@@ -61,6 +61,7 @@ openfail:
 struct uvco_stream_read_ctx{
     UVCO_TASK *task;
     uv_buf_t *buf;
+    ssize_t nread;
 };
 
 static void uvco_stream_read_alloc_cb(uv_handle_t* handle, size_t suggested_size,
@@ -76,11 +77,12 @@ static void uvco_stream_read_alloc_cb(uv_handle_t* handle, size_t suggested_size
 static void uvco_stream_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t *buf)
 {
     struct uvco_stream_read_ctx *ctx = (struct uvco_stream_read_ctx *)stream->data;
-    
     UVCO_TASK *task;
 
     uv_read_stop(stream);
     task = ctx->task;
+    ctx->nread = nread;
+    
     uvco_unblock_task(task);
 }
 
@@ -90,12 +92,47 @@ int uvco_stream_read(uv_stream_t* stream, uv_buf_t *buf)
     
     ctx.task = current;
     ctx.buf = buf;
+    ctx.nread = 0;
     
     stream->data = &ctx;
     uv_read_start(stream, uvco_stream_read_alloc_cb, uvco_stream_read_cb);
     uvco_block_task(current);
 
-    return buf->len;
+    if(ctx.nread >= 0){
+        buf->base[ctx.nread] = 0;
+    }
+    return ctx.nread;
+}
+
+struct uvco_stream_write_ctx{
+    UVCO_TASK *task;
+    int status;
+};
+
+void uvco_stream_write_cb(uv_write_t* req, int status)
+{
+    struct uvco_stream_write_ctx *ctx;
+
+    ctx = (struct uvco_stream_write_ctx *)req->data;
+    ctx->status = status;
+
+    uvco_unblock_task(ctx->task);
+}
+
+int uvco_stream_write(uv_stream_t* stream, uv_buf_t *buf)
+{
+    uv_write_t req;
+    struct uvco_stream_write_ctx ctx;
+
+    ctx.task = current;
+    ctx.status = 0;
+    
+    req.data = &ctx;
+    uv_write(&req, stream, buf, 1, uvco_stream_write_cb);
+    
+    uvco_block_task(current);
+
+    return ctx.status;
 }
 
 void uvco_free_buf(uv_buf_t *buf)
@@ -106,3 +143,56 @@ void uvco_free_buf(uv_buf_t *buf)
     }
 }
 
+
+
+struct uvco_listen_ctx{
+    UVCO_TASK *task;
+    void (*accept)(uv_stream_t *);
+    int status;
+    uv_stream_t* stream;
+};
+
+static void uvco_client_task(void *arg)
+{
+    struct uvco_listen_ctx *ctx = (struct uvco_listen_ctx *)arg;
+
+    ctx->accept(ctx->stream);
+}
+
+void uvco_listen_cb(uv_stream_t* stream, int status)
+{
+    struct uvco_listen_ctx *ctx = (struct uvco_listen_ctx *)stream->data;
+    UVCO_TASK *task;
+    
+    if(status){
+       return; 
+    }
+    task = uvco_create_task("temp", uvco_client_task, ctx, 0);
+    
+    uvco_wakeup_task(task);
+    schedule();
+    //don't wakeup listen task
+    return;
+}
+
+
+int uvco_listen(uv_stream_t* stream, int backlog, void (*accept)(uv_stream_t *))
+{
+    struct uvco_listen_ctx ctx;
+
+    if(!accept){
+        return -1;
+    }
+    
+    ctx.task = current;
+    ctx.accept = accept;
+    ctx.stream = stream;
+    
+    stream->data = &ctx;
+    uv_listen(stream, backlog, uvco_listen_cb);
+
+    //listen task allways sleep
+    uvco_block_task(current);
+
+    return 0;
+}

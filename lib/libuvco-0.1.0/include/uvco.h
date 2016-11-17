@@ -24,6 +24,7 @@
 #include <uvco_conn.h>
 #include <uvco_task.h>
 #include <uvco_stream.h>
+#include <uvco_pipe.h>
 
 #define UVCO_DEBUG 1
 #define UVCO_PIPENAME "/tmp/uvco-unix-sock"

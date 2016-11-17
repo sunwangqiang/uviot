@@ -41,39 +41,26 @@ static int uvco_module_process_rsp(UVCO_MODULE *mod, char *method, json_t *req, 
     return 0;  
 }
 
-void uvco_module_recv(uv_buf_t *buf)
+void uvco_module_recv(json_t *req, json_t *rsp)
 {
     UVCO_MODULE *mod;
-    json_t *req, *rsp;
-    json_error_t err;
     char *dst;
     char *method;
     int ret;
-    
-    /*
-     * decode buf
-     */
-    req = json_loadb(buf->base, buf->len, 0, &err);
-    if(!req){
-        return;
-    }
-    
+        
     dst = (char *)json_string_value(json_object_get(req, UVCO_DST_KEY));
     method = (char *)json_string_value(json_object_get(req, UVCO_METHOD_KEY));
     if(!dst || !method){
-        goto exit;
+        json_object_set(rsp, "result", json_string("Invalid arg"));
+        return;
     }
     
     mod = uvco_get_module();
     if(strcmp(dst, mod->name)){
-        goto exit;
+        json_object_set(rsp, "result", json_string("Invalid module name"));
+        return;
     }
     
-    rsp = json_object();
-    if(!rsp){
-        goto exit;
-    }
-
     uvco_log(UVCO_LOG_DEBUG, "module[%s] recv req {dst:%s, src:%s, method:%s}\n",
               mod->name, json_string_value(json_object_get(req, "dst")), 
                          json_string_value(json_object_get(req, "src")), 
@@ -83,26 +70,67 @@ void uvco_module_recv(uv_buf_t *buf)
     if(!ret){
         uvco_module_process_rsp(mod, method, req, rsp);
     }
+}
 
-    /*
-     * TODO: process rsp
-     */
-    json_decref(rsp);
-exit:
-    json_decref(req);
+static void uvco_client_accept(uv_stream_t* stream)
+{
+    char pipe_name[UVCO_MOD_PIPE_NAME_SIZE];
+    size_t len;
+    uv_pipe_t client;
+    uv_buf_t ibuf, obuf;
+    json_t *req, *rsp;
+    json_error_t err;
+    char *result;
+    int status;
+    int r;
+    
+    r = uv_pipe_init(uv_default_loop(), &client, 1);
+    assert(r == 0);
+
+    r = uv_accept(stream, (uv_stream_t*)&client);
+    assert(r == 0);
+    
+    while(1){
+        uvco_stream_read((uv_stream_t*)&client, &ibuf);
+        if(ibuf.len == 0){
+            perror(__FUNCTION__);
+            continue;
+        }
+        uvco_log(UVCO_LOG_DEBUG, "recv: %s\n", ibuf.base);
+
+        uv_pipe_getpeername(&client, pipe_name, &len);
+        uvco_log(UVCO_LOG_DEBUG, "recv: %s msg\n", pipe_name);
+        
+        /*
+         * decode buf
+         */
+        req = json_loadb(ibuf.base, ibuf.len, 0, &err);
+        rsp = json_object();
+        if(req && rsp){
+            uvco_module_recv(req, rsp);
+        }else{
+            json_object_set(rsp, "result", json_string("Invalid arg"));
+        }
+        
+        result = json_dumps(rsp, 0);
+        obuf = uv_buf_init(result, strlen(result));//TODO: dump to uv_buf_t
+        
+        status = uvco_stream_write((uv_stream_t*)&client, &obuf);
+        uvco_log(UVCO_LOG_DEBUG, "send: %s, status:%d\n", obuf.base, status);
+        
+        json_decref(rsp);
+        json_decref(req);
+        uvco_free_buf(&ibuf);
+    }
 }
 
 static void uvco_module_main(void *arg)
 {
     UVCO_MODULE *mod = (UVCO_MODULE *)arg;
     uv_pipe_t pipe;
-    char pipe_name[UVCO_MOD_PIPE_NAME_SIZE];
-    int sock;
-    struct sockaddr_un sun;
     int r;
-    socklen_t sun_len;
     uv_loop_t *loop;
-    uv_buf_t buf;
+    char pipe_name[UVCO_MOD_PIPE_NAME_SIZE];
     
     /*
      * create a unix socket and wait for it
@@ -112,32 +140,14 @@ static void uvco_module_main(void *arg)
 
     unlink(pipe_name);
     
-    sock = socket(AF_LOCAL, SOCK_DGRAM, 0);
-    assert(sock != -1);
-
-    sun_len = sizeof(sun);
-    memset(&sun, 0, sun_len);
-    sun.sun_family = AF_UNIX;
-    memcpy(sun.sun_path, pipe_name, sizeof(sun.sun_path));
-
-    r = bind(sock, (struct sockaddr*)&sun, sun_len);
-    assert(r == 0);
-
     loop = uv_default_loop();
-    r = uv_pipe_init(loop, &pipe, 1);
+    r = uv_pipe_init(loop, &pipe, 0);
     assert(r == 0);
-    r = uv_pipe_open(&pipe, sock);
+  
+    r = uv_pipe_bind(&pipe, pipe_name);
     assert(r == 0);
-
-    while(1){
-        uvco_stream_read((uv_stream_t*)&pipe, &buf);
-        if(buf.len == 0){
-            perror(__FUNCTION__);
-            continue;
-        }
-        uvco_module_recv(&buf);
-        uvco_free_buf(&buf);
-    }
+    r = uvco_listen((uv_stream_t*)&pipe, 1, uvco_client_accept);
+    assert(r == 0); 
 }
 
 int uvco_module_attach_event(UVCO_MODULE *mod, UVCO_EVENT *ev, u32 size)

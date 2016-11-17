@@ -18,6 +18,7 @@ obj_y += uvco_node.o
 obj_y += uvco_conn.o
 obj_y += uvco_stream.o
 obj_y += uvco_diag.o
+obj_y += uvco_pipe.o
 
 include $(TOP_DIR)/MakeRule
 

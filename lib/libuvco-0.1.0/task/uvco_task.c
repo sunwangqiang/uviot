@@ -62,7 +62,10 @@ UVCO_TASK *uvco_create_task(char *name, void (*entry)(void*), void *arg, u32 sta
     sigset_t zero;
 	u32 x, y;
 	unsigned long z;
-    
+
+    if(stack_size == 0){
+        stack_size = UVCO_DEFAULT_STACK_SIZE;
+    }
     task = (UVCO_TASK *)malloc(sizeof(UVCO_TASK) + stack_size);
     if(!task){
         return NULL;
@@ -217,7 +220,7 @@ void schedule(void)
         prev = &init_task;
     }
     current = next;
-    
+    //printf("switch from %s to %s\n", prev->name, next->name);
     contextswitch(&prev->context, &next->context);
 }
 
