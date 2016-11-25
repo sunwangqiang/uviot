@@ -30,6 +30,7 @@ void uvco_cli_main(void *startarg)
     status = uvco_pipe_connect(&sock_pipe, path);
     if(status){
         uvco_log(UVCO_LOG_ERR, "connect to %s failed\n", path);
+        return;
     }else{
         uvco_log(UVCO_LOG_INFO, "connect to %s success\n", path);
     }
@@ -43,9 +44,11 @@ void uvco_cli_main(void *startarg)
 
         status = uvco_stream_write((uv_stream_t*)&sock_pipe, &stdin_buf);
         uvco_log(UVCO_LOG_INFO, "write status = %d\n", status);
+        
         status = uvco_stream_read((uv_stream_t*)&sock_pipe, &pipein_buf);
         uvco_log(UVCO_LOG_INFO, "read len = %d\n", status);
         uvco_log(UVCO_LOG_INFO, "pid [%d], pipe reply %s\n", getpid(), pipein_buf.base);
+        
         uvco_free_buf(&pipein_buf);
         uvco_free_buf(&stdin_buf);
     }

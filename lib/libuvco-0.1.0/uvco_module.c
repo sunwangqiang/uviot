@@ -41,6 +41,68 @@ static int uvco_module_process_rsp(UVCO_MODULE *mod, char *method, json_t *req, 
     return 0;  
 }
 
+/*
+ * support json_object_path_get(object, "GetRouteIFInfo->ptRouteIFInfo[2]->")
+ */ 
+json_t *json_object_iterate_array_get(json_t *object, char *path)
+{
+    unsigned int index;
+    char key[512];
+    char pad[512];
+    
+    if(sscanf(path, "%[^[][%u%s", key, &index, pad) != 3){
+        return NULL;
+    }
+    if(strcmp(pad, "]")){
+        return NULL;
+    }
+    object = json_object_get(object, key);
+
+    return json_array_get(object, index);
+}
+
+json_t *json_object_path_get(json_t *object, char *path)
+{
+    char *key;
+    char delims[] = "->";
+    char *keypath = strdup(path);
+    json_t *child;
+    
+    if(!object || !keypath){
+        return NULL;
+    }
+
+    key = strtok(keypath, delims);
+    if(!key){
+        free(keypath);
+        return json_object_get(object, keypath);
+    }
+    while(key){
+        
+        child = json_object_get(object, key);
+        if(!child){
+            
+            child = json_object_iterate_array_get(object, key);
+            if(!child){
+                free(keypath);
+                printf("%s: path[%s] is invalid\n", __FUNCTION__, path);
+                return NULL;
+            }
+        }
+        
+        key = strtok(NULL, delims);
+        if(!key){//TODO: check "->" at the of the path
+            free(keypath);
+            return child;
+        }
+        
+        object = child;
+    }
+    free(keypath);
+    printf("%s: path[%s] is invalid\n", __FUNCTION__, path);
+    return NULL;
+}
+
 void uvco_module_recv(json_t *req, json_t *rsp)
 {
     UVCO_MODULE *mod;
@@ -72,7 +134,7 @@ void uvco_module_recv(json_t *req, json_t *rsp)
     }
 }
 
-static void uvco_client_accept(uv_stream_t* stream)
+static void uvco_accept_client(uv_stream_t* stream)
 {
     char pipe_name[UVCO_MOD_PIPE_NAME_SIZE];
     size_t len;
@@ -146,7 +208,7 @@ static void uvco_module_main(void *arg)
   
     r = uv_pipe_bind(&pipe, pipe_name);
     assert(r == 0);
-    r = uvco_listen((uv_stream_t*)&pipe, 1, uvco_client_accept);
+    r = uvco_listen((uv_stream_t*)&pipe, 1, uvco_accept_client);
     assert(r == 0); 
 }
 
